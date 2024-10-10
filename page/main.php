@@ -1,5 +1,4 @@
 <?php
-
             if(isset($_GET['action']) && isset($_GET['query']) )
                     {
                         $tam = $_GET['action'];

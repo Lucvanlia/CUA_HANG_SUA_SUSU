@@ -1,6 +1,7 @@
-<div id="preloder">
+<!-- Loading animation bo? -->
+<!-- <div id="preloder">
         <div class="loader"></div>
-    </div>
+    </div> -->
 
     <!-- Humberger Begin -->
     <div class="humberger__menu__overlay"></div>
@@ -11,7 +12,8 @@
         <div class="humberger__menu__cart">
             <ul>
                 <li><a href="#"><i class="fa fa-heart"></i> <span>1</span></a></li>
-                <li><a href="#"><i class="fa fa-shopping-bag"></i> <span>3</span></a></li>
+                <li><a data-fancybox data-type="ajax" href="cart.php">Load content using AJAX</a><i class="fa fa-shopping-bag"></i></li>
+               
             </ul>
             <div class="header__cart__price">item: <span>Tổng:</span></div>
         </div>
@@ -184,7 +186,7 @@
                     <div class="header__cart">
                         <ul>
                             <li><a href="#"><i class="fa fa-heart"></i> <span>1</span></a></li>
-                            <li><a href="#"><i class="fa fa-shopping-bag"></i> <span>3</span></a></li>
+                            <li> <a data-fancybox data-type="ajax" href="cart.php"><i class="fa fa-shopping-bag"></i> <span>3</span></a></li>
                         </ul>
                         <div class="header__cart__price">item: <span>$150.00</span></div>
                     </div>
@@ -196,6 +198,13 @@
         </div>
     </header>
     <!-- Header Section End -->
+    <div id="cart-icon"> 
+        <a data-fancybox data-type="ajax" href="cart.php">
+
+            <img src="img/cart-icon.gif" alt="">
+        </a>
+    </div>
+
 
 
 

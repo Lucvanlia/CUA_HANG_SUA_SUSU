@@ -7,7 +7,7 @@ try {
     // Lỗi từ Graph API
     echo 'Graph returned an error: ' . $e->getMessage();
     exit;
-} catch(Facebook\Exceptions\FacebookSDKException $e) {
+}                       catch(Facebook\Exceptions\FacebookSDKException $e) {
     // Lỗi từ SDK
     echo 'Facebook SDK returned an error: ' . $e->getMessage();
     exit;
