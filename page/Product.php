@@ -1,6 +1,11 @@
 <?php 
         //Truy vấn lấy loại sản phẩm
-        $sql_loai = "SELECT * FROM loai";
+        $sql_loai = "SELECT  l.tenloai,l.tenloai_class
+                    FROM loai as l 
+                    WHERE l.id_loai in (
+                            SELECT sp.id_loai
+                            FROM dmsp as sp
+                    )";
         $result_loai = mysqli_query($link,$sql_loai);
         //Truy vấn lấy sản phẩm 
         $sql_all="SELECT * FROM 
@@ -48,61 +53,58 @@
             <?php 
                 if ($result_all->num_rows > 0) {
                     while ($row = $result_all->fetch_assoc()) {
-                        echo '
+                     ?>
                         <div class="col-lg-3 col-md-4 col-sm-6 mix ' . $row['tenloai_class'] . '">
                             <div class="featured__item">
-                                <div class="featured__item__pic set-bg" data-setbg="admin_test/modul/uploads/' . $row['hinh'] . '">
+                                <div class="featured__item__pic set-bg" data-setbg="admin_test/modul/uploads/<?=  $row['hinh'] ?>">
                                     <ul class="featured__item__pic__hover">
                                         <li><a href="#"><i class="fa fa-heart"></i></a></li>
                                         <li><a href="#"><i class="fa fa-retweet"></i></a></li>
-                                       <li> <a class="add-to-cart" data-id="' . $row['id_sp'] . '">
-                                                                <i class="fa fa-shopping-cart"></i>
-                                        </a>
-                                        </li>
+                                    
                                                                             
                                     </ul>
                                 </div>
                                 <div class="featured__item__text">
-                                    <h6><a href="#">' . $row['Tensp'] . '</a></h6>
-                                    <h5>$' . number_format($row['gia'],0,',','.')  . '</h5>
+                                    <h6><a href="#"><?=  $row['Tensp'] ?></a></h6>
+                                    <h5><?=  number_format($row['gia'],0,',','.')  ?></h5>
                                 </div>
+                                <?php 
+                                    if($row["SoLuong"] > 0)
+                                    {
+                                ?>
+                                <form action="" method="POST" class=" add-cart">
+                                     <input type="hidden" value="1" name="quantity[<?php echo $row["id_sp"]?>]">
+                                     <input class="btn btn-danger" type="submit" value="Thêm vào giỏ hàng" >
+                                </form>
+                                <?php 
+                                    }
+                                ?>
                             </div>
-                        </div>';
-                    }
-                } else {
-                    echo "No products found";
-                }
-            ?>
+                        </div>
+                        <?php 
+                           }
+                        } else {
+                            echo "No products found";
+                        }
+                    ?>
+                 
 
             </div>
-  
+          
         </div>
     </section>
     <!-- Thêm jQuery nếu chưa có -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $(document).ready(function () {
+        $(".add-cart").submit(function (event) {
+            event.preventDefault();
+            alert("THÊM GIỞ HÀNG");
+            console.log("data: ", $(this).serializeArray());
+            $.ajax({
 
-<script>
-    $(document).ready(function() {
-    $('.add-to-cart').on('click', function(e) {
-        e.preventDefault();
-
-        // Lấy ID sản phẩm từ thuộc tính data-id
-        var productId = $(this).data('id');
-
-        // Gửi request Ajax
-        $.ajax({
-            url: 'add_to_cart.php', // URL của file xử lý
-            type: 'POST',
-            data: { id: productId },
-            success: function(response) {
-                alert('Sản phẩm đã được thêm vào giỏ hàng!');
-                // Bạn có thể cập nhật giỏ hàng hoặc giao diện ở đây nếu cần
-            },
-            error: function() {
-                alert('Có lỗi xảy ra, vui lòng thử lại!');
-            }
+                
+            });
         });
     });
-});
-
 </script>

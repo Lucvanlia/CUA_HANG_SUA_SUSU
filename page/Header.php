@@ -160,7 +160,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-3">
-                    <div class="header__logo">
+                    <div class="header__logo text-center" >
                         <a href="./index.html"><img src="img/logo.png" alt=""></a>
                     </div>
                 </div>
