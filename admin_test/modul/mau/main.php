@@ -98,7 +98,9 @@
                                 include"modul/qlytintuc/timkiem.php";
                            }
                             //============ kt quanlytintuc =================
-
+                            elseif($tam =='quanlydonhang' && $tam1 =='them'){
+                               include"modul/qlydonhang/lietke.php";
+                             }
              elseif($tam == 'admin' && $tam1 == 'admin'){
                 include('welcome.php');
            }

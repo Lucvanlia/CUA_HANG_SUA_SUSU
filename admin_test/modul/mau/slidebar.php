@@ -87,8 +87,24 @@
                         <a class="collapse-item"  href="index.php?action=quanlysanpham&query=them">Thông tin Sản phẩm </a>
                     </div>
                 </div>
+                
             </li>
-
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUtilities1"
+                    aria-expanded="true" aria-controls="collapseUtilities1">
+                    <i class="fas fa-fw fa-wrench"></i>
+                    <span>Đơn đặt hàng</span>
+                </a>
+                <div id="collapseUtilities1" class="collapse" aria-labelledby="headingUtilities"
+                    data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Quản lý:</h6>
+                        <a class="collapse-item"  href="index.php?action=quanlydonhang&query=them">Thông tin đơn hàng </a>
+                    </div>
+                </div>
+                
+            </li>
+        
             <!-- Divider -->
             <hr class="sidebar-divider">
 

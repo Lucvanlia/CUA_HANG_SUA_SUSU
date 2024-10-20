@@ -1,5 +1,6 @@
 
 <?php 
+session_start();
 ob_start();
 require_once "admin_test/ketnoi/conndb.php";
 
@@ -12,17 +13,6 @@ if (isset($_SESSION['message'])) {
 
     // Xóa thông báo sau khi hiển thị
     unset($_SESSION['message']);
-}
-?>
-<?php
-// Nếu người dùng đã đăng nhập bằng Facebook, yêu cầu họ nhập số điện thoại
-if (isset($_SESSION['login-facebook'])) {
-    // Hiển thị form nhập số điện thoại
-    echo '<form action="save_phone.php" method="POST">
-            <label for="phone">Số điện thoại:</label>
-            <input type="text" id="phone" name="phone" required>
-            <input type="submit" value="Lưu số điện thoại">
-          </form>';
 }
 ?>
 <!DOCTYPE html>
@@ -71,6 +61,7 @@ if (isset($_SESSION['login-facebook'])) {
        require_once"page/Header.php";    
        require_once"page/main.php";
        require_once"page/footer.php";
+        // require_once"ajax-process.php";
     
     ?>
 
@@ -101,16 +92,17 @@ if (isset($_SESSION['login-facebook'])) {
     }
 </script>
  <!-- Js Plugins -->
- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+     <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/jquery.nice-select.min.js"></script>
     <script src="js/jquery-ui.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="js/jquery.slicknav.js"></script>
     <script src="js/mixitup.min.js"></script>
     <script src="js/owl.carousel.min.js"></script>
     <script src="js/main.js"></script>
     <script src="js/jquery.fancybox.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script type="text/javascript">
             window.gtranslateSettings = window.gtranslateSettings || {};
             window.gtranslateSettings["43217984"] = {
@@ -240,7 +232,7 @@ if (isset($_SESSION['login-facebook'])) {
     window.__lc.product_name = "livechat";
     ;(function(n,t,c){function i(n){return e._h?e._h.apply(null,n):e._q.push(n)}var e={_q:[],_h:null,_v:"2.0",on:function(){i(["on",c.call(arguments)])},once:function(){i(["once",c.call(arguments)])},off:function(){i(["off",c.call(arguments)])},get:function(){if(!e._h)throw new Error("[LiveChatWidget] You can't use getters before load.");return i(["get",c.call(arguments)])},call:function(){i(["call",c.call(arguments)])},init:function(){var n=t.createElement("script");n.async=!0,n.type="text/javascript",n.src="https://cdn.livechatinc.com/tracking.js",t.head.appendChild(n)}};!n.__lc.asyncInit&&e.init(),n.LiveChatWidget=n.LiveChatWidget||e}(window,document,[].slice))
 </script>  -->
-<noscript><a href="https://www.livechat.com/chat-with/18675987/" rel="nofollow">Chat with us</a>, powered by <a href="https://www.livechat.com/?welcome" rel="noopener nofollow" target="_blank">LiveChat</a></noscript>
+<!-- <noscript><a href="https://www.livechat.com/chat-with/18675987/" rel="nofollow">Chat with us</a>, powered by <a href="https://www.livechat.com/?welcome" rel="noopener nofollow" target="_blank">LiveChat</a></noscript> -->
 <!-- End of LiveChat code -->
 
 </html>
@@ -249,3 +241,4 @@ if (isset($_SESSION['login-facebook'])) {
 ob_end_flush();
 
 ?>
+

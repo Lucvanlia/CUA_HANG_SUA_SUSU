@@ -1,43 +1,25 @@
-<?php 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" />
 
-    if(!isset($_SESSION["cart"])) $_SESSION["cart"] =   array();
-    $GLOBALS['Change_Cart'] = false ;
-    $error = false ; 
-    $success = false ; 
-    if(isset($_GET['action']))
-    {
-        function update_cart($link,$add = false)
-        {
-            foreach($_POST['quantity'] as $id => $quantity)
-            {
-                if($quantity == 0 )
-                {
-                    unset($_SESSION['cart'][$id]);
-                }
-                else
-                {
-                    if(!isset($_SESSION['cart'][$id]))
-                    {
-                        $_SESSION['cart'][$id] = 0 ;
-                    }
-                    var_dump($_SESSION['cart'][$id]);
-                    if($add)
-                    {
-                        $_SESSION['cart'][$id] += $quantity;
-                    }
-                    else
-                    {
-                        $_SESSION['cart'][$id] = $quantity;
-                    }
-                    // check so luongwj sanr pha m
-                    $sql = "SELECT SoLuong FROM dmsp WHERE id_sp = ".$id;
-                    $addsp= mysqli_query($link,$sql);
-                    if($_SESSION['cart'][$id] > $addsp['quantity'])
-                         $_SESSION['cart'][$id] > $addsp['quantity'];
-                          $GLOBALS['Change_Cart'] = true;
-                }
-            }
+<ul>
+    <li><a href="#"><i class="fa fa-heart"></i> <span>1</span></a></li>
+    <li>
+        <a data-fancybox data-type="ajax" id="cart-link" href="get_order_status.php">
+            <i class="fa fa-shopping-bag"></i>
+            <span id="order-count"></span>
+        </a>
+    </li>
+</ul>
+
+<script>
+$(document).ready(function() {
+    $('#cart-link').fancybox({
+        type: 'ajax',
+        smallBtn: true,
+        afterShow: function(instance, current) {
+            console.log('Nội dung đơn hàng đã được hiển thị.');
         }
-    }   
-    
-?>
+    });
+});
+</script>

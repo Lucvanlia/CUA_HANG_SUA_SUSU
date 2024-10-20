@@ -21,7 +21,7 @@ try {
         $name = $payload['name'];
         
         // Kiểm tra xem người dùng đã tồn tại trong cơ sở dữ liệu hay chưa
-        $conn = new mysqli("localhost", "root", "", "your_database");
+        $conn = new mysqli("localhost", "root", "", "banhangviet");
         if ($conn->connect_error) {
             die("Connection failed: " . $conn->connect_error);
         }

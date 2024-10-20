@@ -1,5 +1,11 @@
 <?php
-session_start();
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+// Phần còn lại của file config.php
+
+
 require_once __DIR__ . '/vendor/autoload.php';
 require 'vendor/autoload.php'; // Đảm bảo đường dẫn đúng
 

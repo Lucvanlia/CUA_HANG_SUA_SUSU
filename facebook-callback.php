@@ -1,19 +1,20 @@
 <?php
-require_once'config.php';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+require_once 'config.php';
 
 try {
     $accessToken = $helper->getAccessToken();
-} catch(Facebook\Exceptions\FacebookResponseException $e) {
-    // Lỗi từ Graph API
+} catch (Facebook\Exceptions\FacebookResponseException $e) {
     echo 'Graph returned an error: ' . $e->getMessage();
     exit;
-}                       catch(Facebook\Exceptions\FacebookSDKException $e) {
-    // Lỗi từ SDK
+} catch (Facebook\Exceptions\FacebookSDKException $e) {
     echo 'Facebook SDK returned an error: ' . $e->getMessage();
     exit;
 }
 
-if (! isset($accessToken)) {
+if (!isset($accessToken)) {
     echo 'Bad request';
     exit;
 }
@@ -23,7 +24,7 @@ $tokenMetadata = $oAuth2Client->debugToken($accessToken);
 $tokenMetadata->validateAppId('511847038124775'); // Thay bằng App ID của bạn
 $tokenMetadata->validateExpiration();
 
-if (! $accessToken->isLongLived()) {
+if (!$accessToken->isLongLived()) {
     try {
         $accessToken = $oAuth2Client->getLongLivedAccessToken($accessToken);
     } catch (Facebook\Exceptions\FacebookSDKException $e) {
@@ -38,10 +39,10 @@ $_SESSION['fb_access_token'] = (string) $accessToken;
 try {
     $response = $fb->get('/me?fields=id,name,email,picture', $accessToken);
     $user = $response->getGraphUser();
-} catch(Facebook\Exceptions\FacebookResponseException $e) {
+} catch (Facebook\Exceptions\FacebookResponseException $e) {
     echo 'Graph returned an error: ' . $e->getMessage();
     exit;
-} catch(Facebook\Exceptions\FacebookSDKException $e) {
+} catch (Facebook\Exceptions\FacebookSDKException $e) {
     echo 'Facebook SDK returned an error: ' . $e->getMessage();
     exit;
 }
@@ -65,27 +66,26 @@ $result = $conn->query($sql);
 if ($result->num_rows > 0) {
     // Người dùng đã tồn tại    
     $_SESSION["login-facebook"] = $facebook_id;
-    $_SESSION['message'] = "Đăng ký thành công!";
-    header("location:http://localhost/doan_php/");
     $_SESSION['message'] = "Đăng nhập thành công";
-
 } else {
     // Thêm người dùng mới vào database
-    $stmt = $conn->prepare("INSERT INTO khachhang (facebook_id,Ten_KH, email_kh, profile_pic) VALUES (?, ?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO khachhang (facebook_id, Ten_KH, email_kh, profile_pic) VALUES (?, ?, ?, ?)");
     $stmt->bind_param("ssss", $facebook_id, $name, $email, $profile_pic);
-    $stmt->execute();
-    $sql = "SELECT id_kh FROM khachhang where facebook_id = $facebook_id";
-    $result = $conn->query($sql);
-    $row = $result->fetch_assoc(); // Lấy hàng dữ liệu
-    $name = $row['id_kh']; 
-    $_SESSION["login-facebook"] = $facebook_id;
-    $_SESSION["name"] = $name;
-    $_SESSION['message'] = "Đăng nhập thành công!";
+
+    if ($stmt->execute()) {
+        $new_id = $stmt->insert_id; // Lấy id của bản ghi vừa thêm
+        $_SESSION["login-facebook"] = $facebook_id;
+        $_SESSION["name"] = $new_id;
+        $_SESSION['message'] = "Đăng ký thành công!";
+    } else {
+        echo 'Error inserting user: ' . $stmt->error;
+        exit;
+    }
+
     $stmt->close();
-    //echo  $_SESSION["login"];
-    header("location:http://localhost/doan_php/");
 }
 
 $conn->close();
-
+header("Location: https://banhangviet-tmi.net/doan_php/");
+exit;
 ?>

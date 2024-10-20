@@ -54,7 +54,7 @@
                 if ($result_all->num_rows > 0) {
                     while ($row = $result_all->fetch_assoc()) {
                      ?>
-                        <div class="col-lg-3 col-md-4 col-sm-6 mix ' . $row['tenloai_class'] . '">
+                        <div class="col-lg-3 col-md-4 col-sm-6 mix <?= $row['tenloai_class'] ?>  ">
                             <div class="featured__item">
                                 <div class="featured__item__pic set-bg" data-setbg="admin_test/modul/uploads/<?=  $row['hinh'] ?>">
                                     <ul class="featured__item__pic__hover">
@@ -65,27 +65,40 @@
                                     </ul>
                                 </div>
                                 <div class="featured__item__text">
-                                    <h6><a href="#"><?=  $row['Tensp'] ?></a></h6>
+                                    <h6><a href="index.php?action=product&query=details&id=<?php echo $row['id_sp']?>"><?=  $row['Tensp'] ?></a></h6>
                                     <h5><?=  number_format($row['gia'],0,',','.')  ?></h5>
                                 </div>
                                 <?php 
                                     if($row["SoLuong"] > 0)
                                     {
                                 ?>
-                                <form action="" method="POST" class=" add-cart">
-                                     <input type="hidden" value="1" name="quantity[<?php echo $row["id_sp"]?>]">
-                                     <input class="btn btn-danger" type="submit" value="Thêm vào giỏ hàng" >
-                                </form>
+                               <form id="quick-buy-form" class="form-submit" action="index.php?action=cart&query=add" method="POST">
+                            <input type="hidden" class="pid" value="<?= $row['id_sp'] ?>" name="id" />
+                            <input type="hidden" class="pname" value="<?= $row['Tensp'] ?>" name="ten" />
+                            <input type="hidden" class="pprice" value="<?= $row['gia'] ?>" name="gia" />
+                            <input type="hidden" class="status" value="add" name="status"/>
+                            <input type="hidden" class="pimage" value="admin_test/modul/uploads/<?= $row['hinh'] ?>" name="hinh" />
+                            <div class="product__details__quantity">
+                                <div class="quantity">
+                                    <div class="pro-qty">
+                                        <input type="hidden" class="soluong" name="soluong" value="1" min="1" >
+                                    </div>
+                                    <input style="width: 100%;" class="btn btn-success addItemBtn" type="button" value="Mua ngay" />
+                                </div>
+                            </div>
+                        </form>
                                 <?php 
+                                    }
+                                    else {
+                                        echo "<h4 class='text-center text-danger'>Hết hàng</h4>";
                                     }
                                 ?>
                             </div>
                         </div>
                         <?php 
-                           }
-                        } else {
-                            echo "No products found";
-                        }
+                           } // kt while 
+                        }// kt check so luong 
+                        
                     ?>
                  
 
@@ -93,18 +106,4 @@
           
         </div>
     </section>
-    <!-- Thêm jQuery nếu chưa có -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-    $(document).ready(function () {
-        $(".add-cart").submit(function (event) {
-            event.preventDefault();
-            alert("THÊM GIỞ HÀNG");
-            console.log("data: ", $(this).serializeArray());
-            $.ajax({
-
-                
-            });
-        });
-    });
-</script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

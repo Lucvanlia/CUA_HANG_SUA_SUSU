@@ -1,7 +1,6 @@
 <?php 
 
     include_once"config.php";
-    require_once __DIR__ ."/vendor/autoload.php";
 
     $client = new Google\Client;
     $client->setClientId("134714873321-su3v5rb3icl2b2ean2ap4kn6a5q7mluv.apps.googleusercontent.com");
@@ -14,12 +13,9 @@
     $url = $client->createAuthUrl();
     htmlspecialchars($url);
 
-
+    // facebook url
     $permissions = ['email']; // Quyền mà bạn yêu cầu từ người dùng
-    $loginUrl = $helper->getLoginUrl('http://localhost/doan_php/facebook-callback.php', $permissions);
-
-    echo '<a href="' . htmlspecialchars($loginUrl) . '">Log in with Facebook!</a>';
-    include"page/login.php";
+    $loginUrl = $helper->getLoginUrl('https://banhangviet-tmi.net/doan_php/facebook-callback.php', $permissions);
 ?>
 <!DOCTYPE html>
 <html lang="en">
