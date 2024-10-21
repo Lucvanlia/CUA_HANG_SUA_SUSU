@@ -85,6 +85,7 @@ if (isset($_SESSION["login-facebook"]) && $_SESSION["login-facebook"] != "") {
                 </div>
 
                 <form id="profileForm" method="post" enctype="multipart/form-data">
+                    <input type="hidden" value="update" name ="status_profile">
                     <div class="mb-3">
                         <label for="fullname" class="form-label">Tên người dùng:</label>
                         <input type="text" class="form-control" id="fullname" name="fullname" value="<?php echo $row["Ten_KH"] ?>" required>

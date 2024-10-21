@@ -32,7 +32,7 @@ if (isset($_POST['newPassword'])) {
     if ($link->query($sql) === TRUE) {
         echo "success";
         unset($_SESSION['otp']);
-        header("location:https://banhangviet-tmi.net/doan_php/index.php?action=profile&query=profile");
+        header("location: https://banhangviet-tmi.net/doan_php/index.php?action=profile&query=profile");
     } else {
         echo "Error: " . $link->error;
     }
@@ -40,7 +40,7 @@ if (isset($_POST['newPassword'])) {
     // Đóng kết nối
     $link->close();
 }
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
+if (isset($_POST['status_profile']) ||isset($_FILES['profile_pic']))  {
     // Kiểm tra và xử lý ảnh đại diện
     if (isset($_FILES['profile_pic'])) {
         $file = $_FILES['profile_pic'];
@@ -64,7 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 
     // Kiểm tra và xử lý các thông tin khác
-    if (isset($_POST["fullname"], $_POST["email"], $_POST["phone"], $_POST["dob"])) {
+    if (isset($_POST["fullname"]) || isset($_POST["email"], $_POST["phone"],$_POST["dob"])) {
         $fullname = mysqli_real_escape_string($link, $_POST["fullname"]);
         $email = mysqli_real_escape_string($link, $_POST["email"]);
         $phone = mysqli_real_escape_string($link, $_POST["phone"]);
