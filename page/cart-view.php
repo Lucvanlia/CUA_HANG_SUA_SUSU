@@ -3,14 +3,8 @@
         background-color: white !important;
     }
 </style>
-<?php 
-    function calculateTotal() {
-        $total = 0;
-        foreach ($_SESSION['cart'] as $cartItem) {
-            $total += $cartItem[2] * $cartItem[4];
-        }
-        return $total;
-    }
+<?php
+
 ?>
 <section class="checkout spad">
     <div class="container">
@@ -39,7 +33,10 @@
                                 if (isset($_SESSION['cart']) && count($_SESSION['cart'])) {
                                     $stt = 1;
                                     foreach ($_SESSION['cart'] as $item) {
-                                        $tt = $item['2'] * $item['4'];
+                                        // Kiểm tra xem các phần tử tồn tại hay không
+                                        $gia = isset($item[2]) ? $item[2] : 0;
+                                        $soluong = isset($item[4]) ? $item[4] : 0;
+                                        $tt = $gia * $soluong;
                                 ?>
                                         <tr class="cart-item">
                                             <input type="hidden" class="pid" value="<?= $item['0'] ?>" name="id" />
@@ -60,10 +57,10 @@
 
                                             <span class="total-price"></span>
                                             </td>
-                                            <td class="text-right" >
-                                                <a href="#" class="btn btn-warning cart-del-item" style="color: white;" data-id="<?= $item['0'] ?>">
+                                            <td class="text-right">
+                                                <button href="#" class="btn btn-warning cart-del-item" style="color: white;" data-id="<?= $item['0'] ?>">
                                                     <i class="fa-regular fa-trash-can"></i> Xóa
-                                                </a>
+                                                </button>
                                             </td>
                                         </tr>
                                 <?php
@@ -76,9 +73,9 @@
                         </table>
 
                         <div class="checkout__order__total">Tổng cộng
-                        <span id="tong-tien"><?= isset($_SESSION['tong_tien']) ? number_format($_SESSION['tong_tien'], 0, ',', '.') : 0 ?> VNĐ</span>
-                        <div class="total">
-                        </div>
+                            <span id="tong-tien"><?= isset($_SESSION['tong_tien']) ? number_format($_SESSION['tong_tien'], 0, ',', '.') : 0 ?> VNĐ</span>
+                            <div class="total">
+                            </div>
                         </div>
                         <?php
                         if (isset($_SESSION['cart']) && count($_SESSION['cart'])) {
@@ -87,43 +84,37 @@
                             echo '<h4>Hãy mua sắm ngay tại đây</h4>';
                         }
                         ?>
-                        
+
                         <p>Lorem ipsum dolor sit amet, consectetur adip elit, sed do eiusmod tempor incididunt
                             ut labore et dolore magna aliqua.</p>
                         <div class="checkout__input__checkbox">
-                            <div class="checkout__input__checkbox">
-                                <label for="payment">
-                                    Thanh toán bằng VNPAY
-                                    <input type="checkbox" id="payment" name="banking" class="single-checkbox" require>
-                                    <span class="checkmark"></span>
-                                </label>
-                            </div>
-                            <div class="checkout__input__checkbox">
-                                <label for="paypal">
-                                    COD
-                                    <input type="checkbox" id="paypal" name="cod" class="single-checkbox" require>
-                                    <span class="checkmark"></span>
-                                </label>
-                            </div>
 
 
-                        </div>
-                        <div class="checkout__input__checkbox">
 
                         </div>
                     </div>
                     <?php
                     if (isset($_SESSION['login-facebook']) || isset($_SESSION["login-google"]) || isset($_SESSION["login"])) {
-                        echo '<form method="post" action="?action=cart&query=insert"> <input type="submit" class="site-btn" value="Đặt hàng ngay" name="order"></form>';
+                        echo '<form method="post" id="frmPaying">
+                                 <label style="padding: 10px"><input type="radio" value="vnpay" name="payment_method" required>Thanh toán VNPAY <img style="padding: 10px" class="img" width="100px" height="100px" src="img/VNPAY_id-sVSMjm2_1.svg" alt="logovnp"></label> <br>
+                                <label style="padding: 10px"><input type="radio" value="cod" name="payment_method" required>Thanh toán khi nhận hàng<img  style="padding: 10px" width="80px" height="80px" src="https://img.icons8.com/?size=100&id=9Ah9p7pS6m8u&format=png&color=000000" alt=""></label>
+                                <br>
+                                <input type="submit" class="site-btn" value="Đặt hàng ngay" name="order">
+                            </form>';
                     } else {
                         echo '<a href="login-main.php">Vui lòng đăng nhập tại đây để thanh toán đơn hàng</a>';
                     }
                     ?>
+
                 </div>
-              
+                <form method="post" action="?action=cart&query=vnpay">
+                    <input type="submit" class="site-btn" value="Đặt hàng ngayVNPAY" name="order-vnpay">
+                </form>
             </div>
         </div>
     </div>
     </div>
 </section>
 <!-- Checkout Section End -->
+<script>
+</script>

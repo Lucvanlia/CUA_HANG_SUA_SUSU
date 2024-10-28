@@ -4,9 +4,7 @@
           dmsp  as sp 
           join xuatxu   as xx on sp.id_xuatxu = xx.id_xuatxu 
           join hang     as h  on sp.id_hang = h.id_hang       
-          join diadiem  as dd on sp.id_diadiem = dd.id_diadiem            
           join loai     as l  on sp.id_loai = l.id_loai            
-          join chatlieu as cl on sp.id_chatlieu = cl.id_chatlieu                     
         ";
         //========================================ressult==================================================
         $result_all=mysqli_query($link, $sql_all);

@@ -211,7 +211,7 @@
                 type: 'POST',
                 data: {
                     cart: data,
-                    status:update-cart
+                    status: update - cart
                 },
                 success: function(response) {
                     // Cập nhật tổng tiền từ phản hồi của máy chủ
@@ -220,7 +220,6 @@
             });
         }
     });
-
     $(document).ready(function() {
         $('.quantity').on('input', function() {
             var quantity = parseInt($(this).val());
@@ -234,7 +233,7 @@
                 type: 'POST',
                 data: {
                     id: id,
-                    status: get-max-stock
+                    status: 'get-max-stock' // Sửa lỗi: Thêm dấu nháy đơn quanh 'get-max-stock'
                 },
                 dataType: 'json',
                 success: function(response) {
@@ -273,5 +272,42 @@
                 }
             });
         }
+    });
+
+    $(document).ready(function() {
+        $('#frmPaying').on('submit', function(event) {
+            event.preventDefault(); // Ngăn chặn submit mặc định
+
+            var paymentMethod = $('input[name="payment_method"]:checked').val(); // Lấy phương thức thanh toán được chọn
+
+            if (!paymentMethod) {
+                alert("Vui lòng chọn phương thức thanh toán.");
+                return; // Ngừng thực hiện nếu không chọn phương thức thanh toán
+            }
+
+            var formData = new FormData(this); // Lấy dữ liệu form
+
+            $.ajax({
+                url: 'ajax-process.php', // URL xử lý đơn hàng
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    if (response.trim() === "success_cod") {
+                        alert("Đặt hàng COD thành công!");
+                    } else if (response.trim() === "success_vnpay") {
+                        window.location.href = "https://banhangviet-tmi.net/doan_php/index.php?action=cart&query=vnpay"; // Điều hướng sang trang VNPay return
+                    } else if (response.trim() === "empty") {
+                        alert("Vui lòng chọn phương thức thanh toán.");
+                    } else {
+                        alert("Chú ý: " + response);
+                    }
+                },
+                error: function() {
+                    alert("Có lỗi xảy ra, vui lòng thử lại!");
+                }
+            });
+        });
     });
 </script>

@@ -5,14 +5,13 @@ session_start();
 require_once("config_vnpay.php");
 
 // Tính tổng tiền giỏ hàng
-$total = 0;
-if (isset($_SESSION['cart'])) {
-    foreach ($_SESSION['cart'] as $item) {
-        $total += $item['price'];
-    }
-}
+$total = $_SESSION['tong_tien'];
 
 $amount = $total; // Tổng số tiền từ giỏ hàng
+
+if ($amount <= 0) {
+    die('Giỏ hàng rỗng hoặc giá trị không hợp lệ.');
+}
 
 // Tạo mã đơn hàng
 $order_id = rand(100000, 999999);
@@ -41,15 +40,9 @@ $inputData = array(
 );
 
 ksort($inputData);
-$query = "";
-$hashdata = "";
-foreach ($inputData as $key => $value) {
-    $hashdata .= urlencode($key) . "=" . urlencode($value) . '&';
-}
-$hashdata = rtrim($hashdata, '&');
-
+$hashdata = http_build_query($inputData);
 $vnpSecureHash = hash_hmac('sha512', $hashdata, $vnp_HashSecret);
-$query = http_build_query($inputData) . '&vnp_SecureHash=' . $vnpSecureHash;
+$query = $hashdata . '&vnp_SecureHash=' . $vnpSecureHash;
 
 $vnp_Url = $vnp_Url . "?" . $query;
 

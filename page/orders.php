@@ -103,6 +103,11 @@ if (isset($_SESSION['id_user'])) {
                                 <div class="accordion-body">
                                     <p><strong>Ngày đặt hàng:</strong> <?= date("d/m/Y H:i:s", $row_hd['NgayLapHD']) ?></p>
                                     <p><strong>Tổng tiền:</strong> <?= number_format($row_hd['tongtien'], 0, ',', '.') ?> VND</p>
+                                    <p><strong>Trạng thái:</strong>
+                                        <?php if ($row_hd['thanhtoan'] == 0) echo '<span class="p-1 mb-1 bg-success text-center text-white rounded-pill">Thanh toán trực tuyến';
+                                        else echo 'chưa thah thoán'; ?>
+                                        </span>
+                                    </p>
                                     <p><strong>Chi tiết sản phẩm:</strong></p>
                                     <ul>
                                         <?php
@@ -110,7 +115,7 @@ if (isset($_SESSION['id_user'])) {
                                         mysqli_data_seek($result_ct, 0); // Đặt con trỏ về đầu
                                         while ($row_ct = mysqli_fetch_array($result_ct)) {
                                             if ($row_ct['id_hd'] == $row_hd['id_hd']) {
-                                                echo "<li>" . $row_ct['Tensp'] . " - " . $row_ct['SoLuong'] . " cái - " . number_format($row_ct['gia'], 0, ',', '.') . " VND</li>";
+                                                echo "<li>" . $row_ct['Tensp'] . " - " . $row_ct['SoLuong'] . "Kg - " . number_format($row_ct['gia'], 0, ',', '.') . " VND</li>";
                                             }
                                         }
                                         ?>

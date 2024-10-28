@@ -1,16 +1,12 @@
   <?php 
          include ('ketnoi/conndb.php');
          //=======================SQL===================
-         $sql_chatlieu = "SELECT * FROM chatlieu ";
          $sql_xuatxu = "SELECT * FROM xuatxu";
          $sql_hang = "SELECT * FROM hang ";
-         $sql_diadiem = "SELECT * FROM diadiem";
          $sql_loai = "SELECT * FROM loai";
          //===================kq=====================
-         $result_chatlieu = mysqli_query($link, $sql_chatlieu);
          $result_xuatxu = mysqli_query($link, $sql_xuatxu);
          $result_hang = mysqli_query($link, $sql_hang);
-         $result_diadiem = mysqli_query($link, $sql_diadiem);
          $result_loai = mysqli_query($link, $sql_loai);
          //====================================================
 
@@ -51,15 +47,7 @@
               <div class="form-group  py-3    ">
                   <label for="" class="form-label  "><strong>Chọn chất liệu:</strong></label>
                  <select name="cmbcl" class="dtform   form-select form-select-lg mb-3 "  >
-                   <?php
-                      while($rows = mysqli_fetch_array($result_chatlieu))
-                      {
-                    ?>
-                      <option value="<?=$rows['id_chatlieu']?>"  required> <?=$rows['TenChatLieu']?></option>
-                      <?php
-                        $i = $i + 1;
-                      }//KT Else
-                    ?>
+                
                  </select>
                 </div>
                 <div class="form-group  py-3    ">

@@ -76,7 +76,7 @@ if ($result->num_rows > 0) {
         $new_id = $stmt->insert_id; // Lấy id của bản ghi vừa thêm
         $_SESSION["login-facebook"] = $facebook_id;
         $_SESSION["name"] = $new_id;
-        $_SESSION['message'] = "Đăng ký thành công!";
+        $_SESSION['message'] = "Đăng nhập thành công!";
     } else {
         echo 'Error inserting user: ' . $stmt->error;
         exit;

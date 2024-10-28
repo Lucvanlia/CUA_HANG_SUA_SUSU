@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dropzone Example</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
+</head>
+<body>
+
+    <div class="dropzone" id="dropzoneArea"></div>
+
+    <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+    <script>
+        Dropzone.options.dropzoneArea = {
+            url: 'ajax-process.php', // Đường dẫn đến tệp xử lý tải ảnh
+            autoProcessQueue: true,
+            acceptedFiles: 'image/*',
+            init: function() {
+                this.on("success", function(file, response) {
+                    console.log("Uploaded successfully:", response);
+                });
+                this.on("error", function(file, response) {
+                    console.log("Error uploading:", response);
+                });
+            }
+        };
+    </script>
+
+</body>
+</html>
