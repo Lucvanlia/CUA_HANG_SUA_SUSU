@@ -3,30 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dropzone Example</title>
+    <title>Fancybox Test</title>
     
-    <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
+    <!-- Fancybox CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0.30/dist/fancybox.css" />
 </head>
 <body>
+    <div class="container mt-5">
+        <h2 class="mb-4">Danh sách hóa đơn</h2>
 
-    <div class="dropzone" id="dropzoneArea"></div>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>Mã hóa đơn</th>
+                    <th>Trạng thái</th>
+                    <th>Chỉnh sửa</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>HD001</td>
+                    <td>
+                        <select class="form-control order-status-select" data-order-id="HD001">
+                            <option value="0">Đã giao hàng</option>
+                            <option value="1">Chờ xác nhận</option>
+                            <option value="2">Đã xác nhận</option>
+                        </select>
+                    </td>
+                    <td><i class="fa-solid fa-pen-to-square"></i></td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>HD002</td>
+                    <td>
+                        <select class="form-control order-status-select" data-order-id="HD002">
+                            <option value="0">Đã giao hàng</option>
+                            <option value="1">Chờ xác nhận</option>
+                            <option value="2">Đã xác nhận</option>
+                        </select>
+                    </td>
+                    <td><i class="fa-solid fa-pen-to-square"></i></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
-    <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+    <!-- Fancybox JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0.30/dist/fancybox.umd.js"></script>
+
     <script>
-        Dropzone.options.dropzoneArea = {
-            url: 'ajax-process.php', // Đường dẫn đến tệp xử lý tải ảnh
-            autoProcessQueue: true,
-            acceptedFiles: 'image/*',
-            init: function() {
-                this.on("success", function(file, response) {
-                    console.log("Uploaded successfully:", response);
-                });
-                this.on("error", function(file, response) {
-                    console.log("Error uploading:", response);
-                });
-            }
-        };
-    </script>
+    // Import Fancybox từ module fancyapps
+    const { Fancybox } = window;
 
+    $(document).ready(function() {
+        $('.order-status-select').on('change', function() {
+            var orderId = $(this).data('order-id');
+            var statusText = $(this).find("option:selected").text();
+            
+            // Hiển thị thông báo bằng Fancybox
+            Fancybox.show([
+                {
+                    src: `<div style="padding: 20px; text-align: center;">
+                            <h3>Thông báo</h3>
+                            <p>Mã đơn hàng: <strong>${orderId}</strong></p>
+                            <p>Trạng thái đã cập nhật: <strong>${statusText}</strong></p>
+                            <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                          </div>`,
+                    type: "html",
+                },
+            ], {
+                afterShow: (instance, current) => {
+                    console.info("Fancybox hiện đã mở!");
+                },
+            });
+        });
+    });
+    </script>
 </body>
 </html>

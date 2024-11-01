@@ -1,109 +1,79 @@
 <?php
     include ('../../ketnoi/conndb.php');
-    
-        if(isset($_POST['themsanpham']))
-    {
-        $tensp = $_POST['txttensp'];
-        $xuatxu = $_POST['cmbxx'];
-        $hang = $_POST['cmbh'];
-        $chatlieu = $_POST['cmbcl'];
-        $diadiem = $_POST['cmbdd'];
-        $loai = $_POST['cmbl'];
-        $hinhanh= $_FILES['txthinh']['name'];
-        $hinhanh_tmp= $_FILES['txthinh']['tmp_name'];
-        $mota= $_POST['txtmota'];
-        $querycheck = mysqli_query($link , "SELECT * FROM dmsp WHERE Tensp = '$tensp'");
-        if(mysqli_num_rows($querycheck) > 0)
-        {          
-            include"loi.php";   
-        }
-        else {
-            $sql_them = "INSERT INTO `dmsp` ( Tensp,id_hang,id_xuatxu,id_diadiem,id_chatlieu,id_loai,Mota,hinh)
-              VALUES ( '".$tensp."' , '$hang','$xuatxu' ,'$diadiem','$chatlieu','$loai','".$mota."'  ,'".$hinhanh."'  )";
-            mysqli_query($link,$sql_them);
-            header('location:../../index.php?action=quanlysanpham&query=them');
-            move_uploaded_file($hinhanh_tmp,'../uploads/'.$hinhanh);
 
-        }
-        echo '
-            <script>
-                document.getElementById("txtxuatxu").focus();
-            </script>
+if (isset($_POST['action'])) {
+    $action = $_POST['action'];
 
-        ';
-        
-    }
-    elseif(isset($_POST['Suasanpham']))
-    {
+    switch ($action) {
+        case 'add':
+            // Xử lý thêm sản phẩm
+            $Tensp = $_POST['Tensp'];
+            $MoTa = $_POST['MoTa'];
+            $gia = $_POST['gia'];
+            $SoLuong = $_POST['SoLuong'];
+            $hinh = $_FILES['hinh']['name'];
+            $Hinh_ChiTiet = ""; // Chưa upload hình chi tiết
 
-        $tensp = $_POST['txtsp'];
-        $sql_sua = "UPDATE  `dmsp` SET Tensp='".$tensp."' WHERE id_sp = '$_GET[id]'";
-        mysqli_query($link,$sql_sua);
-        header('location:../../index.php?action=quanlysanpham&query=them');
-        /* 
-               $xuatxu = $_POST['cmbxx'];
-        $hang = $_POST['cmbh'];
-        $chatlieu = $_POST['cmbcl'];
-        $diadiem = $_POST['cmbdd'];
-        $loai = $_POST['cmbl'];
-        $mota=$_POST['txtmota'];
-        //$hinhanh= $_FILES['txthinh']['name'];
-      //  $hinhanh_tmp= $_FILES['txthinh']['tmp_name'];
-      id_xuatxu='".$xuatxu."';
-        id_hang='".$hang."';
-        id_chatlieu='".$chatlieu."';
-        id_diadiem='".$diadiem."';
-        id_loai='".$loai."';
-        id_mota='".$mota."';  */
-    }
+            // Upload ảnh chính
+            $target_dir = "uploads/";
+            $target_file = $target_dir . basename($hinh);
+            move_uploaded_file($_FILES['hinh']['tmp_name'], $target_file);
 
-     // Check if delete button active, start this 
-     elseif(isset($_POST['delete']))
-     {
- 
-        $smt_check = array();
-        $smt_check = count($_POST['ckcl']);
-        echo"$hinhanh";
-         for($i=0;$i< $smt_check;$i++){
-             $del_id = $_POST['ckcl'][$i];
-             $sql_chon="SELECT * FROM dmsp WHERE id_sp = '".$del_id."'";
-             $query=mysqli_query($link,$sql_chon);
-             while($row = mysqli_fetch_array($query))
-             {
-                    unlink('../uploads/'.$row['hinh']);
-             }
-             $sql = "DELETE FROM dmsp WHERE id_sp ='".$del_id."'";
-             $result = mysqli_query($link, $sql);
-         }
-
-         // if successful redirect to delete_multiple.php 
-         if($result){           
-            header('location:../../index.php?action=quanlysanpham&query=them');
-        }
-        }
-        //tim kiem 
-        elseif(isset($_POST['name']))
-        {
-            $name = $_POST['name'];
-            $sql_timkiem = "SELECT TOP 50 * FROM xuatxu WHERE xuatxu.Tenxuatxu like '%".$name."%'";
-            $query_timkiem = mysqli_query($link,$sql_timkiem);
-            $data = '';
-            $stt  = 0;
-            while ($row=mysqli_fetch_array($query_timkiem)) 
-            {
-                $stt = $stt + 1;
-                $data ="
-                <tr>
-                <td>  $stt</td>
-                <td>".$row['tenxuatxu']."</td>
-                <td><a href='?action=quanlyxuatxu&query=sua&id=".$row['id_xuatxu']."' ><i class='fa-solid fa-pen-to-square'></i></a></td>
-                <td class='echo $stt'><input name='ckcl[]' type='checkbox'  value='".$row['id_xuatxu']."'class='Organization_Desg_Check_margin' id='OrganizationDesgCheckData1  $stt '></td>
-            </tr>
-            ";
+            // Lưu sản phẩm vào CSDL
+            $sql = "INSERT INTO dmsp (Tensp, MoTa, gia, SoLuong, hinh, Hinh_ChiTiet) 
+                    VALUES ('$Tensp', '$MoTa', '$gia', '$SoLuong', '$hinh', '$Hinh_ChiTiet')";
+            if (mysqli_query($conn, $sql)) {
+                echo "Thêm sản phẩm thành công!";
+            } else {
+                echo "Lỗi: " . mysqli_error($conn);
             }
-            echo $data;
-            
-             mysqli_close($link);
-        }
-         
+            break;
+
+        case 'delete':
+            // Xử lý xóa sản phẩm
+            $id_sp = $_POST['id_sp'];
+            $sql = "DELETE FROM dmsp WHERE id_sp = $id_sp";
+            if (mysqli_query($conn, $sql)) {
+                echo "Xóa sản phẩm thành công!";
+            } else {
+                echo "Lỗi: " . mysqli_error($conn);
+            }
+            break;
+
+        case 'edit':
+            // Xử lý sửa sản phẩm
+            $id_sp = $_POST['id_sp'];
+            $Tensp = $_POST['Tensp'];
+            $MoTa = $_POST['MoTa'];
+            $gia = $_POST['gia'];
+            $SoLuong = $_POST['SoLuong'];
+
+            $sql = "UPDATE dmsp SET Tensp = '$Tensp', MoTa = '$MoTa', gia = '$gia', SoLuong = '$SoLuong' WHERE id_sp = $id_sp";
+            if (mysqli_query($conn, $sql)) {
+                echo "Cập nhật sản phẩm thành công!";
+            } else {
+                echo "Lỗi: " . mysqli_error($conn);
+            }
+            break;
+
+        case 'upload_images':
+            // Xử lý upload ảnh chi tiết
+            $uploadedFiles = [];
+            foreach ($_FILES as $file) {
+                $target_dir = "uploads/";
+                $target_file = $target_dir . basename($file['name']);
+                move_uploaded_file($file['tmp_name'], $target_file);
+                $uploadedFiles[] = $file['name'];
+            }
+            echo json_encode($uploadedFiles);
+            break;
+
+        default:
+            echo "Hành động không hợp lệ!";
+    }
+} else {
+    echo "Không có hành động nào!";
+}
+
+mysqli_close($conn);
 ?>

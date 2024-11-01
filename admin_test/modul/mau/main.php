@@ -76,7 +76,7 @@
                             //============Trang san pham=================
                             elseif($tam =='quanlysanpham' && $tam1 =='them'){
                                 include"modul/qlysanpham/them.php";
-                               include"modul/qlysanpham/lietke.php";
+                            //   include"modul/qlysanpham/lietke.php";
                              }
                             elseif($tam =='quanlysanpham' && $tam1 =='sua'){
                                 include"modul/qlysanpham/sua.php";

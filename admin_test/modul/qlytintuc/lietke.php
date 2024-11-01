@@ -67,7 +67,7 @@
                             <td>{$row['Title']}</td>
                             <td>{$noidung}</td>
                             <td>
-                                <a href='uploads/{$row['HinhAnh']}' data-fancybox='gallery'>
+                                <a href='modul/uploads/{$row['HinhAnh']}' data-fancybox='gallery'>
                                     <img src='modul/uploads/{$row['HinhAnh']}' alt='Hình ảnh' style='width: 50px;'>
                                 </a>
                             </td>

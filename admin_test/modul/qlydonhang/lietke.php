@@ -1,8 +1,26 @@
-<?php 
-    $sql2 = "SELECT * FROM hoadon";
-    $result = mysqli_query($link, $sql2);
-    $count = mysqli_num_rows($result);
+<?php
+$sql2 = "SELECT * FROM hoadon";
+$result = mysqli_query($link, $sql2);
+$count = mysqli_num_rows($result);
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danh sách hóa đơn</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+    <!-- Fancybox CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0.30/dist/fancybox.css" />
+</head>
+<body>
+
 <div class="mb-4" id="DesignationTable" style="background-color:#fff">
     <div class="card-header py-3" style="background-color:#fff">
         <h6 class="m-0 font-weight-bold text-primary">Danh sách hóa đơn</h6>
@@ -12,7 +30,9 @@
             <div class="py-4 d-flex flex-row bd-highlight mb-3">
                 <form method="post" action="index.php?action=timkiem&query=timkiem_loai" class="py-2">
                     <label for="">Tìm kiếm hóa đơn</label>
-                    <input type="text" id="search_loai" name="search" class="col-form-label" placeholder="Tìm mã hóa đơn" autocomplete="off" value="<?php if (isset($_GET['search'])) {echo $_GET['search'];} ?>">
+                    <input type="text" id="search_loai" name="search" class="col-form-label" placeholder="Tìm mã hóa đơn" autocomplete="off" value="<?php if (isset($_GET['search'])) {
+                                                                                                                                                        echo $_GET['search'];
+                                                                                                                                                    } ?>">
                     <input type="submit" value="Tìm" class="btn btn-primary" name="tim">
                 </form>
             </div>
@@ -39,7 +59,7 @@
                             <tr>
                                 <td><?php echo $stt ?></td>
                                 <td><?php echo $row['id_hd']; ?></td>
-                                <td><?php echo date("d/m/Y H:i:s", $row['NgayLapHD']); ?></td>
+                                <td><?php echo date("d/m/Y H:i:s", strtotime($row['NgayLapHD'])); ?></td>
                                 <td><?php echo number_format($row['tongtien'], 0, ',', '.'); ?> VND</td>
                                 <td>
                                     <select class="form-select order-status-select" data-order-id="<?php echo $row['id_hd']; ?>">
@@ -63,36 +83,53 @@
     </div>
 </div>
 
+<!-- jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+<!-- Bootstrap JS -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+<!-- Fancybox JS -->
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0.30/dist/fancybox.umd.js"></script>
+
 <script>
-$(document).ready(function() {
-    $('.order-status-select').on('change', function() {
-        var orderId = $(this).data('order-id');
-        var status = $(this).val();
-        var statusText = $(this).find("option:selected").text(); // Lấy tên trạng thái
-        
-        $.ajax({
-            url: 'ajax-process.php', // File PHP để xử lý cập nhật
-            type: 'POST',
-            data: {
-                id_hd: orderId,
-                trang_thai: status
-            },
-            success: function(response) {
-                if (response == 'success') {
-                    $.fancybox.open(`
-                        <div style="padding: 20px; text-align: center;">
-                            <h3>Thông báo</h3>
-                            <p>Mã đơn hàng: <strong>${orderId}</strong></p>
-                            <p>Trạng thái đã cập nhật: <strong>${statusText}</strong></p>
-                            <button onclick="$.fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
-                        </div>
-                    `);
-                } else {
-                    alert('Có lỗi xảy ra khi cập nhật trạng thái.');
+    // Import Fancybox từ module fancyapps
+    const { Fancybox } = window;
+    $(document).ready(function() {
+        $('.order-status-select').on('change', function() {
+            var orderId = $(this).data('order-id');
+            var status = $(this).val();
+            var statusText = $(this).find("option:selected").text(); // Lấy tên trạng thái
+
+            $.ajax({
+                url: 'ajax-process.php', // File PHP để xử lý cập nhật
+                type: 'POST',
+                data: {
+                    id_hd: orderId,
+                    trang_thai: status
+                },
+                success: function(response) {
+                    if (response == 'success') {
+                        Fancybox.show([{
+                            src: `<div style="padding: 20px; text-align: center;">
+                                    <h3>Thông báo</h3>
+                                    <p>Mã đơn hàng: <strong>${orderId}</strong></p>
+                                    <p>Trạng thái đã cập nhật: <strong>${statusText}</strong></p>
+                                    <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                                  </div>`,
+                            type: "html",
+                        }], {
+                            afterShow: (instance, current) => {
+                                console.info("Fancybox hiện đã mở!");
+                            },
+                        });
+                    } else {
+                        alert('Có lỗi xảy ra khi cập nhật trạng thái.');
+                    }
                 }
-            }
+            });
         });
     });
-});
 </script>
+</body>
+</html>
