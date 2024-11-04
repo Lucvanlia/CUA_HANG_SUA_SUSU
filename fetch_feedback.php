@@ -70,8 +70,8 @@ if (mysqli_num_rows($result) > 0) {
             echo '<div class="feedback-images d-flex flex-wrap">';
             foreach ($images as $image) {
                 if (!empty($image)) { // Kiểm tra xem từng hình ảnh có rỗng không
-                    echo '<a data-fancybox="gallery" href="' . htmlspecialchars($image) . '">
-                            <img src="' . htmlspecialchars($image) . '" alt="feedback image" class="img-thumbnail" style="width:100px; height:100px; object-fit:cover; margin-right: 5px; margin-bottom: 5px;">
+                    echo '<a data-fancybox="gallery" href="admin_test/modul/uploads/' . htmlspecialchars($image) . '">
+                            <img src="admin_test/modul/uploads/' . htmlspecialchars($image) . '" alt="feedback image" class="img-thumbnail" style="width:100px; height:100px; object-fit:cover; margin-right: 5px; margin-bottom: 5px;">
                           </a>';
                 }
             }
