@@ -17,6 +17,7 @@
                                     {
                                         echo 'Xin chào: <a href="index.php?action=profile&query=profile">'.$row["Ten_KH"].'</a>';
                                     }
+                                   
                                    }
                                     if(isset($_SESSION["login-google"]))
                                     {

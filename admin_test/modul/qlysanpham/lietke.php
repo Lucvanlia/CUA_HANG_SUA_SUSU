@@ -1,9 +1,8 @@
-
 <?php
 include('ketnoi/conndb.php');
 
 // Thiết lập số lượng sản phẩm trên mỗi trang
-$limit = 10;
+$limit = 5;
 $page = isset($_POST['page']) ? (int)$_POST['page'] : 1;
 $start = ($page - 1) * $limit;
 
@@ -37,73 +36,72 @@ $total_products = $total_row['total'];
     <div class="form-group col-lg-4 col-md-12 ">
         <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm sản phẩm...">
     </div>
-       <!-- Button Thêm sản phẩm -->
-       <div class="form-group col-lg-4 col-md-6 ">
-            <button >Thêm sản phẩm</button>
-            <a data-fancybox data-type="ajax" href="modul/qlysanpham/them.php" class="btn btn-primary" id="addProductBtn">Load content using AJAX</a>
+    <!-- Button Thêm sản phẩm -->
+    <div class="form-group col-lg-4 col-md-6 ">
+        <a data-fancybox data-type="ajax" href="modul/qlysanpham/them.php" class="btn btn-primary" id="addProductBtn">Load content using AJAX</a>
 
-       </div>
-<!-- Popup nhập thông tin sản phẩm -->
-<div style="display: none;" id="addProductPopup">
-    <div class="card p-4">
-        <h4>Thêm sản phẩm mới</h4>
-        <form id="addProductForm" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="Tensp">Tên sản phẩm:</label>
-                <input type="text" class="form-control" id="Tensp" name="Tensp" required>
-            </div>
-
-            <div class="form-group">
-                <label for="id_hang">Hãng:</label>
-                <select class="form-control" id="id_hang" name="id_hang" required>
-                    <!-- Thêm các tùy chọn hãng từ database -->
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="id_xuatxu">Xuất xứ:</label>
-                <select class="form-control" id="id_xuatxu" name="id_xuatxu" required>
-                    <!-- Thêm các tùy chọn xuất xứ từ database -->
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="id_loai">Loại sản phẩm:</label>
-                <select class="form-control" id="id_loai" name="id_loai" required>
-                    <!-- Thêm các tùy chọn loại sản phẩm từ database -->
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="Mota">Mô tả:</label>
-                <textarea class="form-control" id="Mota" name="Mota"></textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="hinh">Hình nền sản phẩm:</label>
-                <input type="file" class="form-control" id="hinh" name="hinh" accept="image/*" required>
-            </div>
-
-            <div class="form-group">
-                <label for="HinhAnh_ChiTiet">Hình ảnh chi tiết:</label>
-                <div id="dropzone" class="dropzone"></div>
-                <input type="hidden" name="HinhAnh_ChiTiet" id="HinhAnh_ChiTiet" required>
-            </div>
-
-            <div class="form-group">
-                <label for="Gia">Giá:</label>
-                <input type="number" class="form-control" id="Gia" name="Gia" required>
-            </div>
-
-            <div class="form-group">
-                <label for="SoLuong">Số lượng:</label>
-                <input type="number" class="form-control" id="SoLuong" name="SoLuong" required>
-            </div>
-
-            <button type="submit" class="btn btn-success" id = "submit">Lưu sản phẩm</button>
-        </form>
     </div>
-</div>
+    <!-- Popup nhập thông tin sản phẩm -->
+    <div style="display: none;" id="addProductPopup">
+        <div class="card p-4">
+            <h4>Thêm sản phẩm mới</h4>
+            <form id="addProductForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="Tensp">Tên sản phẩm:</label>
+                    <input type="text" class="form-control" id="Tensp" name="Tensp" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="id_hang">Hãng:</label>
+                    <select class="form-control" id="id_hang" name="id_hang" required>
+                        <!-- Thêm các tùy chọn hãng từ database -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="id_xuatxu">Xuất xứ:</label>
+                    <select class="form-control" id="id_xuatxu" name="id_xuatxu" required>
+                        <!-- Thêm các tùy chọn xuất xứ từ database -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="id_loai">Loại sản phẩm:</label>
+                    <select class="form-control" id="id_loai" name="id_loai" required>
+                        <!-- Thêm các tùy chọn loại sản phẩm từ database -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="Mota">Mô tả:</label>
+                    <textarea class="form-control" id="Mota" name="Mota"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="hinh">Hình nền sản phẩm:</label>
+                    <input type="file" class="form-control" id="hinh" name="hinh" accept="image/*" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="HinhAnh_ChiTiet">Hình ảnh chi tiết:</label>
+                    <div id="dropzone" class="dropzone"></div>
+                    <input type="hidden" name="HinhAnh_ChiTiet" id="HinhAnh_ChiTiet" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="Gia">Giá:</label>
+                    <input type="number" class="form-control" id="Gia" name="Gia" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="SoLuong">Số lượng:</label>
+                    <input type="number" class="form-control" id="SoLuong" name="SoLuong" required>
+                </div>
+
+                <button type="submit" class="btn btn-success" id="submit">Lưu sản phẩm</button>
+            </form>
+        </div>
+    </div>
 
 
 
@@ -131,11 +129,11 @@ $total_products = $total_row['total'];
                             $tenhang = array_slice($tenhang, 0, 15);
                             $tenhang = implode(' ', $tenhang) . '...';
                         } else {
-                            $tenhang= $row['TenLoai'];
+                            $tenhang = $row['TenLoai'];
                         }
                         echo "<tr>
                             <td>{$stt}</td>
-                            <td>{$row['TenSP']}</td>
+                            <td><a href='?action=quanlysanpham&query=chitiet&id={$row['id_sp']}' >{$row['TenSP']}</a></td>
                             <td>{$row['TenHang']}</td>
                             <td>{$tenhang}</td>
                             <td>{$row['TenXuatXu']}</td>
@@ -170,22 +168,12 @@ $total_products = $total_row['total'];
     </nav>
 </div>
 
-<!-- jQuery và Bootstrap JS -->
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<!-- Fancybox JS -->
-<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4/dist/fancybox.umd.js"></script>
-<!-- CKEditor -->
-<script src="https://cdn.ckeditor.com/4.25.0/lts/standard/ckeditor.js"></script>
-<!-- Dropzone JS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.js"></script>
 
 <script>
     // Khởi tạo CKEditor cho trường Mô tả
     CKEDITOR.replace('Mota');
 
     // Hiển thị popup thêm sản phẩm khi click button
- 
 </script>
 
 <script>
@@ -197,6 +185,36 @@ $total_products = $total_row['total'];
                 $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
             });
         });
-    });
+        loadProducts(1);
 
+        // Xử lý tìm kiếm trực tiếp khi người dùng nhập vào ô tìm kiếm
+        $("#searchInput").on("keyup", function() {
+            loadProducts(1); // Mỗi khi tìm kiếm, reset lại về trang 1
+        });
+
+        // Xử lý khi click vào các trang phân trang
+        $(document).on("click", ".page-link", function(e) {
+            e.preventDefault();
+            var page = $(this).data("page");
+            loadProducts(page);
+        });
+
+        // Hàm AJAX để tải danh sách sản phẩm và phân trang
+        function loadProducts(page) {
+            var query = $("#searchInput").val();
+            $.ajax({
+                url: "", // Gửi yêu cầu đến cùng trang hiện tại
+                type: "POST",
+                data: {
+                    page: page,
+                    query: query
+                },
+                success: function(response) {
+                    // Cập nhật danh sách sản phẩm và phân trang từ kết quả trả về
+                    $("#productList").html($(response).find("#productList").html());
+                    $(".pagination").html($(response).find(".pagination").html());
+                }
+            });
+        }
+    });
 </script>

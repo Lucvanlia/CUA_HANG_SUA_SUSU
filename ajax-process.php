@@ -1,6 +1,8 @@
 <?php
 session_start();
 include "admin_test/ketnoi/conndb.php";
+// Kiểm tra tạm thời
+error_log(print_r($_POST, true)); // Kiểm tra dữ liệu trong console PHP
 /* if(isset($_POST['user_id']) && isset($_POST['star']) && isset($_POST['description'])){
     $user_id = $_POST['user_id'];
     $star = $_POST['star'];
@@ -115,22 +117,7 @@ if (isset($_POST['id'])) {
                 exit();
             }
             break;
-        case 'sl':
-            if (isset($_POST['cart'])) {
-                $cart = $_POST['cart'];
-
-                // Duyệt qua từng sản phẩm để tính tổng tiền
-                foreach ($cart as $item) {
-                    $tongTien += $item['quantity'] * $item['price'];
-                }
-
-                // Cập nhật tổng tiền vào session
-                $_SESSION['tongtien'] = $tongTien;
-
-                // Trả về tổng tiền cho jQuery
-                echo number_format($tongTien, 0, ',', '.');
-            }
-            break;
+       
         case 'get-max-stock':
             $id = intval($_POST['id']);
             // Truy vấn cơ sở dữ liệu để lấy số lượng tồn kho của sản phẩm
@@ -148,6 +135,34 @@ if (isset($_POST['id'])) {
                 echo json_encode(['error' => 'Sản phẩm không tồn tại']);
             }
             break;
+            case 'check_sl':
+                $productId = $_POST['productId'] ?? 0;
+                $quantityRequested = $_POST['quantity'] ?? 0;
+        
+                // Kiểm tra sản phẩm và hàng tồn kho
+                $stmt = $conn->prepare("SELECT SoLuong FROM dmsp WHERE id_sp = ?");
+                $stmt->bind_param("i", $productId);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                $product = $result->fetch_assoc();
+        
+                if ($product) {
+                    $stockAvailable = $product['SoLuong'];
+                    $available = $quantityRequested <= $stockAvailable;
+        
+                    // Trả về kết quả dưới dạng JSON
+                    echo json_encode(['available' => $available]);
+                } else {
+                    echo json_encode(['available' => false]);
+                }
+        
+                $stmt->close();
+                break;
+        
+            default:
+                // Trả về JSON rỗng nếu action không khớp
+                echo json_encode(['error' => 'Invalid action']);
+                break;
     }
 }
 if (isset($_POST['payment_method'])) {
@@ -219,6 +234,8 @@ if (isset($_POST['payment_method'])) {
         // Nếu thành công thì commit, nếu không thì rollback
         if ($success) {
             mysqli_commit($link);
+            unset($_SESSION['cart']);
+            $_SESSION['tong_tien'] = 0;
             echo "success_cod";
         } else {
             mysqli_rollback($link);

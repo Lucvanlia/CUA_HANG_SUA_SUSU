@@ -1,26 +1,25 @@
 <?php
-if(isset($_GET['id']))
-{
-    
- $_SESSION['sp-details']= $_GET['id'];
-// Lấy id_loai của sản phẩm hiện tại
-$sql_goiy = "SELECT id_loai FROM dmsp WHERE id_sp = '$_GET[id]'";
-$result_goiy = $link->query($sql_goiy);
-$row_goiy = mysqli_fetch_assoc($result_goiy);
-$id_loai = $row_goiy['id_loai'];
+if (isset($_GET['id'])) {
+    $test = $_GET['id'];
+    $productId = $_GET['id'];
+    // Lấy id_loai của sản phẩm hiện tại
+    $sql_goiy = "SELECT id_loai FROM dmsp WHERE id_sp = '$_GET[id]'";
+    $result_goiy = $link->query($sql_goiy);
+    $row_goiy = mysqli_fetch_assoc($result_goiy);
+    $id_loai = $row_goiy['id_loai'];
 
-// Lấy danh sách sản phẩm tương tự
-$sql_tuongtu = "SELECT * FROM dmsp WHERE id_sp != '$_GET[id]' AND id_loai = '$id_loai'";
-$query_tuongtu = mysqli_query($link, $sql_tuongtu);
+    // Lấy danh sách sản phẩm tương tự
+    $sql_tuongtu = "SELECT * FROM dmsp WHERE id_sp != '$_GET[id]' AND id_loai = '$id_loai'";
+    $query_tuongtu = mysqli_query($link, $sql_tuongtu);
 
-// Truy vấn chi tiết sản phẩm
-$sql_chitiet = "SELECT * FROM 
+    // Truy vấn chi tiết sản phẩm
+    $sql_chitiet = "SELECT * FROM 
         dmsp AS sp 
         JOIN xuatxu AS xx ON sp.id_xuatxu = xx.id_xuatxu 
         JOIN hang AS h ON sp.id_hang = h.id_hang       
         JOIN loai AS l ON sp.id_loai = l.id_loai            
         WHERE sp.id_sp = '$_GET[id]'";
-$query_chitiet = mysqli_query($link, $sql_chitiet);
+    $query_chitiet = mysqli_query($link, $sql_chitiet);
 }
 
 
@@ -126,7 +125,7 @@ while ($row = mysqli_fetch_assoc($query_chitiet)) {
                             </li> -->
                         </ul>
                         <div id="rating-section"></div>
-                        
+
                         <div class="tab-content">
                             <!-- Tab Mô tả sản phẩm -->
                             <div class="tab-pane active" id="tabs-1" role="tabpanel">
@@ -136,7 +135,7 @@ while ($row = mysqli_fetch_assoc($query_chitiet)) {
                                     <?php if (isset($_SESSION['id_user'])) {
                                         echo '    <form id="rating-form" style="padding-right: -20px;">
                 <input type="hidden" id="username" value="' . $_SESSION['id_user'] . '">
-                <input type="hidden" id="product_id" value="' .$_SESSION['sp-details'] . '">
+                <input type="hidden" id="product_id" value="' . $productId . '">
                 <div class="row ">
                 <div class="stars col-lg-4 col-md-6 col-sm-12">
                     <input class="star star-5" id="star-5" type="radio" name="star" value="5" />
@@ -163,15 +162,16 @@ while ($row = mysqli_fetch_assoc($query_chitiet)) {
                     </div>
                 </div>
             </form>';
-                                    }
+                                    } else
+                                        echo '<a class="collapse-item active" href="login-main.php">Hãy đăng nhập để lại bình luận của bạn</a>';
                                     ?>
                                     <!-- Dropzone cho phần tải lên nhiều ảnh -->
-                                    <div class="row py-2">
-                                        <div class="col-lg-4 col-md-12">
+                                    <div class="row py-2" style="<?php echo isset($_SESSION['id_user']) ? 'display: block;' : 'display: none;'; ?>">
+                                        <div class="col-lg-12 col-md-12">
                                             <form action="upload_images.php" class="dropzone" id="dropzoneArea"></form>
                                         </div>
                                     </div>
-                            
+
                                 </div>
                             </div>
 
@@ -355,104 +355,113 @@ while ($row = mysqli_fetch_assoc($query_chitiet)) {
 </html>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
- Dropzone.autoDiscover = false;
-
-$(document).ready(function() {
     Dropzone.autoDiscover = false;
 
-    if (Dropzone.instances.length > 0) {
-        Dropzone.instances.forEach(function(dropzone) {
-            dropzone.destroy();
-        });
-    }
+    $(document).ready(function() {
+        Dropzone.autoDiscover = false;
 
-    var myDropzone = new Dropzone("#dropzoneArea", {
-        url: "comment-process.php",
-        autoProcessQueue: false,
-        uploadMultiple: true,
-        maxFiles: 10,
-        acceptedFiles: "image/*",
-        addRemoveLinks: true,
-        parallelUploads: 10,
-        init: function() {
-            var dropzone = this;
-            $('#submit-rating').on('click', function(e) {
-                e.preventDefault();
-                var product_id = $('#product_id').val();
-                var user_id = $('#username').val();
-                var star = $('input[name="star"]:checked').val();
-                var description = $('#rating-description').val();
-
-                if (!star) {
-                    alert('Vui lòng chọn số sao đánh giá!');
-                    return;
-                }
-                if (!description) {
-                    alert('Vui lòng nhập mô tả đánh giá!');
-                    return;
-                }
-
-                myDropzone.options.params = {
-                    user_id: user_id,
-                    star: star,
-                    description: description
-                };
-
-                if (dropzone.getQueuedFiles().length > 0) {
-                    dropzone.processQueue();
-                } else {
-                    // Không có ảnh thì gửi đánh giá trực tiếp
-                    $.ajax({
-                        url: 'comment-process.php',
-                        type: 'POST',
-                        data: {
-                            user_id: user_id,
-                            star: star,
-                            description: description
-                        },
-                        success: function(response) {
-                            console.log(response); // Kiểm tra phản hồi
-                            if (response.success) {
-                                alert('Đánh giá đã được gửi thành công!');
-                                loadFeedback();
-                            } else {
-                                alert('Đánh giá không được lưu: ' + response.error);
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            alert('Lỗi server: ' + error);
-                        }
-                    });
-                }
-            });
-
-            dropzone.on("successmultiple", function(files, response) {
-                console.log(response); // Kiểm tra phản hồi
-                if (response.success) {
-                    alert('Ảnh đã được tải lên và đánh giá thành công!');
-                    loadFeedback();
-                } else {
-                    alert('Có lỗi trong quá trình tải ảnh: ' + response.error);
-                }
-            });
-
-            dropzone.on("errormultiple", function(files, response) {
-                alert('Lỗi khi tải ảnh!');
+        if (Dropzone.instances.length > 0) {
+            Dropzone.instances.forEach(function(dropzone) {
+                dropzone.destroy();
             });
         }
-    });
 
-    function loadFeedback() {
-        $.ajax({
-            url: 'fetch_feedback.php',
-            type: 'GET',
-            success: function(response) {
-                $('#rating-section').html(response);
+        var myDropzone = new Dropzone("#dropzoneArea", {
+            url: "comment-process.php",
+            autoProcessQueue: false,
+            uploadMultiple: true,
+            maxFiles: 10,
+            acceptedFiles: "image/*",
+            addRemoveLinks: true,
+            parallelUploads: 10,
+            init: function() {
+                var dropzone = this;
+                $('#submit-rating').on('click', function(e) {
+                    e.preventDefault();
+                    var product_id = $('#product_id').val();
+                    var user_id = $('#username').val();
+                    var star = $('input[name="star"]:checked').val();
+                    var description = $('#rating-description').val();
+
+                    if (!star) {
+                        alert('Vui lòng chọn số sao đánh giá!');
+                        return;
+                    }
+                    if (!description) {
+                        alert('Vui lòng nhập mô tả đánh giá!');
+                        return;
+                    }
+
+                    myDropzone.options.params = {
+                        user_id: user_id,
+                        star: star,
+                        description: description
+                    };
+
+                    if (dropzone.getQueuedFiles().length > 0) {
+                        dropzone.processQueue();
+                    } else {
+                        // Không có ảnh thì gửi đánh giá trực tiếp
+                        $.ajax({
+                            url: 'comment-process.php',
+                            type: 'POST',
+                            data: {
+                                user_id: user_id,
+                                star: star,
+                                description: description
+                            },
+                            success: function(response) {
+                                console.log(response); // Kiểm tra phản hồi
+                                if (response.success) {
+                                    alert('Đánh giá đã được gửi thành công!');
+                                    loadFeedback();
+                                } else {
+                                    alert('Đánh giá không được lưu: ' + response.error);
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                alert('Lỗi server: ' + error);
+                            }
+                        });
+                    }
+                });
+
+                dropzone.on("successmultiple", function(files, response) {
+                    console.log(response); // Kiểm tra phản hồi
+                    if (response.success) {
+                        alert('Ảnh đã được tải lên và đánh giá thành công!');
+                        loadFeedback();
+                    } else {
+                        alert('Có lỗi trong quá trình tải ảnh: ' + response.error);
+                    }
+                });
+
+                dropzone.on("errormultiple", function(files, response) {
+                    alert('Lỗi khi tải ảnh!');
+                });
             }
         });
-    }
 
-    loadFeedback();
-});
+        // Định nghĩa hàm loadFeedback
+        function loadFeedback(productId) {
+            $.ajax({
+                url: 'fetch_feedback.php',
+                type: 'GET',
+                data: {
+                    id: productId
+                },
+                success: function(response) {
+                    $('#rating-section').html(response);
+                }
+            });
+        }
 
+        // Gọi hàm loadFeedback với giá trị từ PHP
+        <?php if ($productId): ?>
+            loadFeedback(<?php echo json_encode($productId); ?>);
+        <?php else: ?>
+            console.warn("ID sản phẩm không được cung cấp trong URL.");
+        <?php endif; ?>
+        loadFeedback($productId);
+    });
 </script>

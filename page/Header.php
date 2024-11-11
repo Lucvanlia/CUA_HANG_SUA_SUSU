@@ -41,8 +41,18 @@
                     echo 'Xin chào: <a href="index.php?action=profile&query=profile">' . $row["Ten_KH"] . '</a>';
                 }
             }
+            if (isset($_SESSION['id_user'])) {
+                $sql2 = "SELECT * FROM  khachhang where id_kh =" . $_SESSION["id_user"];
+                $result = mysqli_query($link, $sql2);
+                $count = mysqli_num_rows($result);
+                while ($row = mysqli_fetch_array($result)) {
+                    $_SESSION['id_user'] = $row['id_kh'];
+                    echo $row['id_kh'];
+                    echo 'Xin chào: <a href="index.php?action=profile&query=profile">' . $row["Ten_KH"] . '</a>';
+                }
+            }
 
-            if (isset($_SESSION["login-google"]) || isset($_SESSION["login-facebook"])) {
+            if (isset($_SESSION["login-google"]) || isset($_SESSION["login-facebook"]) || $_SESSION['id_user']) {
                 echo ' <a href="index.php?action=dangxuat&query=dangxuat">Đăng xuất</a>';
             } else {
                 echo ' <a class="collapse-item" href="login-main.php">Đăng nhập</a>';
@@ -54,7 +64,7 @@
     <nav class="humberger__menu__nav mobile-menu">
         <ul>
             <li class="active"><a href="/doan_php">Home</a></li>
-            <li><a href="./">Shop</a></li>
+            <li><a href="?action=product&query=all">Shop123</a></li>
             <li><a href="#">Pages</a>
                 <ul class="header__menu__dropdown">
                     <li><a href="./shop-details.html">Shop Details</a></li>
@@ -107,10 +117,17 @@
                                     echo 'Xin chào: <a href="index.php?action=profile&query=profile">' . $row["Ten_KH"] . '</a>';
                                 }
                             }
-
+                            if (isset($_SESSION['id_user'])) {
+                                $sql2 = "SELECT * FROM  khachhang where id_kh =" . $_SESSION["id_user"];
+                                $result = mysqli_query($link, $sql2);
+                                $count = mysqli_num_rows($result);
+                                while ($row = mysqli_fetch_array($result)) {
+                                    $_SESSION['id_user'] = $row['id_kh'];
+                                    echo 'Xin chào: <a href="index.php?action=profile&query=profile">' . $row["Ten_KH"] . '</a>';
+                                }
+                            }
                             ?>
 
-                            <li>Free Shipping for all Order of $99</li>
                         </ul>
                     </div>
                 </div>
@@ -129,11 +146,11 @@
                         <div class="header__top__right__auth">
 
                             <?php
-                            if (isset($_SESSION["login-google"]) || isset($_SESSION["login-facebook"])) {
-                                echo ' <a href="index.php?action=dangxuat&query=dangxuat">Đăng xuất</a>';
-                            } else {
-                                echo ' <a class="collapse-item" href="login-main.php">Đăng nhập</a>';
-                            }
+                           if (isset($_SESSION["login-google"]) || isset($_SESSION["login-facebook"]) ||isset($_SESSION['id_user'])) {
+                            echo ' <a href="index.php?action=dangxuat&query=dangxuat">Đăng xuất</a>';
+                        } else {
+                            echo ' <a class="collapse-item" href="login-main.php">Đăng nhập</a>';
+                        }
 
                             ?> </div>
                     </div>
@@ -152,7 +169,7 @@
                 <nav class="header__menu">
                     <ul>
                         <li class="active"><a href="/doan_php">Home</a></li>
-                        <li><a href="?action=product-all&query=details">Shop</a></li>
+                        <li><a href="?action=product&query=all">Shop</a></li>
                         <li><a href="#">Pages</a>
                             <ul class="header__menu__dropdown">
                                 <li><a href="./shop-details.html">Shop Details</a></li>

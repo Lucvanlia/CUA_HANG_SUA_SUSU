@@ -9,7 +9,11 @@ if (isset($_SESSION["login-facebook"]) && $_SESSION["login-facebook"] != "") {
 } elseif (isset($_SESSION["login-google"]) && $_SESSION["login-google"] != "") {
     $sql = "SELECT * FROM khachhang WHERE google_id = " . $_SESSION["login-google"];
     $result = mysqli_query($link, $sql);
-} else {
+} elseif (isset($_SESSION['id_user']) && $_SESSION['id_user'] != "") {
+    $sql = "SELECT * FROM khachhang WHERE id_kh = " . $_SESSION['id_user'];
+    $result = mysqli_query($link, $sql);
+} 
+else {
     // Xử lý khi không có thông tin đăng nhập
     $result = null;
 }

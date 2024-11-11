@@ -1,6 +1,6 @@
 <?php
-session_start();
 ob_start();
+session_start();
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 require_once "admin_test/ketnoi/conndb.php";
 

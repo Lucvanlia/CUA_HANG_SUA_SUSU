@@ -1,5 +1,5 @@
 <?php
-include('ketnoi/conndb.php');
+include('../../ketnoi/conndb.php');
 //=======================SQL===================
 $sql_xuatxu = "SELECT * FROM xuatxu";
 $sql_hang = "SELECT * FROM hang ";
@@ -87,6 +87,11 @@ $result_loai = mysqli_query($link, $sql_loai);
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css"
+/>
 <script>
     Dropzone.autoDiscover = false;
 

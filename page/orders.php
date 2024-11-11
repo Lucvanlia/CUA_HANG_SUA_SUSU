@@ -4,7 +4,7 @@ if (isset($_SESSION['id_user'])) {
            FROM hoadon
            WHERE id_kh = " . $_SESSION['id_user'] . "
            ORDER BY NgayLapHD DESC";
-    $sql_ct = "SELECT * 
+    $sql_ct = "SELECT * , ct.SoLuong as sl
     FROM ctiethd ct
     JOIN dmsp sp ON sp.id_sp = ct.id_sp
     WHERE ct.id_hd IN (
@@ -115,7 +115,8 @@ if (isset($_SESSION['id_user'])) {
                                         mysqli_data_seek($result_ct, 0); // Đặt con trỏ về đầu
                                         while ($row_ct = mysqli_fetch_array($result_ct)) {
                                             if ($row_ct['id_hd'] == $row_hd['id_hd']) {
-                                                echo "<li>" . $row_ct['Tensp'] . " - " . $row_ct['SoLuong'] . "Kg - " . number_format($row_ct['gia'], 0, ',', '.') . " VND</li>";
+                                                // var_dump($row_ct);
+                                                echo "<li>" . $row_ct['Tensp'] . " - " . $row_ct['sl'] . "Kg - " . number_format($row_ct['gia'], 0, ',', '.') . " VND</li>";
                                             }
                                         }
                                         ?>

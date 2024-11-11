@@ -37,12 +37,15 @@ elseif (isset($_GET['action']) && $_GET['action'] == 'details' && isset($_GET['i
             if (isset($_SESSION['login-user'])) {
                 unset($_SESSION['login-user']);
             }
+            if (isset($_SESSION['id_user'])) {
+                unset($_SESSION['id_user']);
+            }
             // Chuyển hướng người dùng về trang đăng nhập
-            header("Location: http://localhost/doan_php/");
+            header("Location: https://banhangviet-tmi.net/doan_php/");
         } elseif ($tam == 'profile' && $tam1 == 'profile') {
             include_once "profile.php";
         } elseif ($tam == 'profile' && $tam1 == 'orders') {
-            if (isset($_SESSION['login-facebook']) || isset($_SESSION['login']) || isset($_SESSION['login-google'])) {
+            if (isset($_SESSION['login-facebook']) || isset($_SESSION['id_user']) || isset($_SESSION['login-google'])) {
                 require_once "orders.php";
             } else {
                 header("location: http://banhangviet-tmi.net/doan_php/login-main.php");
@@ -66,7 +69,10 @@ elseif (isset($_GET['action']) && $_GET['action'] == 'details' && isset($_GET['i
             require_once "page/cart-view.php";
         } elseif ($tam == 'product' && $tam1 == 'details') {
             require_once 'page/chitiet-sp.php';
-        } elseif ($tam == 'cart' && $tam1 == 'del-all') {
+        } 
+        elseif ($tam == 'product' && $tam1 == 'all') {
+            require_once 'page/sanpham_all.php';
+        }elseif ($tam == 'cart' && $tam1 == 'del-all') {
             if (isset($_SESSION['cart']) && count($_SESSION['cart'])) {
                 unset($_SESSION['cart']);
                 header("Location: index.php?action=cart&query=view");

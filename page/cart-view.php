@@ -50,7 +50,7 @@
                                             <td class="text-center"><?= number_format($item['2'], 0, ',', '.') ?> VNĐ</td>
                                             <!-- Số lượng -->
                                             <td class="text-center">
-                                                <input style="width: 50px;" type="number" value="<?= $item['4'] ?>" class="text-center quantity" name="soluong" data-id="<?= $item['0'] ?>" data-price="<?= $item['2'] ?> ">
+                                                <input style="width: 50px;" type="number" value="<?= $item['4'] ?>" class="text-center quantity" oninput="updateCart()" name="soluong" data-id="<?= $item['0'] ?>" data-price="<?= $item['2'] ?> ">
                                             </td>
                                             <!-- Thành tiền -->
                                             <td class="text-right" id="total-<?= $item['0'] ?>"><?= number_format($item['2'] * $item['4'], 0, ',', '.') ?> VNĐ</td>
@@ -85,8 +85,7 @@
                         }
                         ?>
 
-                        <p>Lorem ipsum dolor sit amet, consectetur adip elit, sed do eiusmod tempor incididunt
-                            ut labore et dolore magna aliqua.</p>
+                        
                         <div class="checkout__input__checkbox">
 
 
@@ -94,7 +93,7 @@
                         </div>
                     </div>
                     <?php
-                    if (isset($_SESSION['login-facebook']) || isset($_SESSION["login-google"]) || isset($_SESSION["login"])) {
+                    if (isset($_SESSION['login-facebook']) || isset($_SESSION["login-google"]) || isset($_SESSION["id_user"])) {
                         echo '<form method="post" id="frmPaying">
                                  <label style="padding: 10px"><input type="radio" value="vnpay" name="payment_method" required>Thanh toán VNPAY <img style="padding: 10px" class="img" width="100px" height="100px" src="img/VNPAY_id-sVSMjm2_1.svg" alt="logovnp"></label> <br>
                                 <label style="padding: 10px"><input type="radio" value="cod" name="payment_method" required>Thanh toán khi nhận hàng<img  style="padding: 10px" width="80px" height="80px" src="https://img.icons8.com/?size=100&id=9Ah9p7pS6m8u&format=png&color=000000" alt=""></label>
@@ -107,14 +106,51 @@
                     ?>
 
                 </div>
-                <form method="post" action="?action=cart&query=vnpay">
-                    <input type="submit" class="site-btn" value="Đặt hàng ngayVNPAY" name="order-vnpay">
-                </form>
+                
             </div>
         </div>
     </div>
     </div>
 </section>
-<!-- Checkout Section End -->
 <script>
+    function updateCart() {
+        var totalPrice = 0;
+
+        // Lặp qua tất cả các sản phẩm trong giỏ hàng
+        document.querySelectorAll('.cart-item').forEach(function(item) {
+            var quantityInput = item.querySelector('.quantity');
+            var priceText = item.querySelector('td.text-center').textContent.replace(',', ''); // Loại bỏ dấu phẩy
+            var price = parseFloat(priceText);  // Chuyển đổi giá thành số
+            var quantity = parseInt(quantityInput.value);
+
+            // Kiểm tra nếu giá trị không hợp lệ (NaN hoặc không phải số)
+            if (isNaN(price) || isNaN(quantity) || quantity <= 0 || price <= 0) {
+                console.log('Lỗi giá trị: price =', price, 'quantity =', quantity);
+                return; // Nếu giá trị không hợp lệ, bỏ qua và không tính tổng
+            }
+
+            // Tính lại thành tiền cho sản phẩm
+            var itemTotal = price * quantity;
+
+            // Cập nhật thành tiền của sản phẩm
+            item.querySelector('#total-' + quantityInput.getAttribute('data-id')).textContent = itemTotal.toLocaleString(); // Không thêm " VNĐ"
+
+            // Cộng tổng tiền giỏ hàng
+            totalPrice += itemTotal;
+        });
+
+        // Cập nhật tổng tiền giỏ hàng
+        document.getElementById('tong-tien').textContent = totalPrice.toLocaleString(); // Không thêm " VNĐ"
+
+        // Kiểm tra giá trị tổng tiền để debug
+        console.log('Tổng tiền giỏ hàng:', totalPrice);
+    }
+
+    // Gọi hàm updateCart mỗi khi có sự thay đổi số lượng
+    document.querySelectorAll('.quantity').forEach(function(input) {
+        input.addEventListener('input', updateCart);
+    });
 </script>
+
+
+
