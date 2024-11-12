@@ -66,7 +66,7 @@
                                 </div>
                                 <div class="featured__item__text">
                                     <h6><a href="index.php?action=product&query=details&id=<?php echo $row['id_sp']?>"><?=  $row['Tensp'] ?></a></h6>
-                                    <h5><?=  number_format($row['gia'],0,',','.')  ?></h5>
+                                    <h5><?=  number_format($row['gia'],0,',','.')  ?><span>&nbsp;VNĐ</span></h5>
                                 </div>
                                 <?php 
                                     if($row["SoLuong"] > 0)

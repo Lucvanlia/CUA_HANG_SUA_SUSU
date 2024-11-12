@@ -43,9 +43,38 @@ while ($row = mysqli_fetch_assoc($query_chitiet)) {
                     <div class="product__details__pic">
                         <div class="product__details__pic__item">
                             <img class="product__details__pic__item--large"
-                                src="img/product/details/product-details-1.jpg" alt="">
+                                src="admin_test/modul/uploads/<?= $row['hinh'] ?>" alt="">
                         </div>
-                        <div class="product__details__pic__slider owl-carousel">
+                        <?php
+                        // Lấy dữ liệu từ cột Hinh_ChiTiet
+                        $hinh_chitiet = $row['Hinh_ChiTiet'];
+
+                        // Tách chuỗi thành mảng bằng dấu phẩy
+                        $images = explode(',', $hinh_chitiet);
+
+                        // Kiểm tra và hiển thị các ảnh nếu mảng không rỗng
+                        if (is_array($images) && count($images) > 0) {
+                            echo '<div class="product__details__pic__slider owl-carousel">';
+                            foreach ($images as $image) {
+                                // Xóa khoảng trắng thừa và hiển thị từng ảnh
+                                $image = trim($image); // Xóa khoảng trắng thừa
+                                echo '<img data-imgbigurl="admin_test/modul/uploads/' . $image . '" src="admin_test/modul/uploads/' . $image . '" alt="">';
+                            }
+                            echo '</div>';
+                        } else {
+                            // Hiển thị ảnh mẫu nếu không có ảnh nào
+                            echo '<div class="product__details__pic__slider owl-carousel">
+                                    <img data-imgbigurl="img/product/details/product-details-2.jpg" src="img/product/details/thumb-1.jpg" alt="">
+                                    <img data-imgbigurl="img/product/details/product-details-3.jpg" src="img/product/details/thumb-2.jpg" alt="">
+                                    <img data-imgbigurl="img/product/details/product-details-5.jpg" src="img/product/details/thumb-3.jpg" alt="">
+                                    <img data-imgbigurl="img/product/details/product-details-4.jpg" src="img/product/details/thumb-4.jpg" alt="">
+                                </div>';
+                        }
+                        ?>
+
+
+
+                        <!-- <div class="product__details__pic__slider owl-carousel">
                             <img data-imgbigurl="img/product/details/product-details-2.jpg"
                                 src="img/product/details/thumb-1.jpg" alt="">
                             <img data-imgbigurl="img/product/details/product-details-3.jpg"
@@ -54,7 +83,7 @@ while ($row = mysqli_fetch_assoc($query_chitiet)) {
                                 src="img/product/details/thumb-3.jpg" alt="">
                             <img data-imgbigurl="img/product/details/product-details-4.jpg"
                                 src="img/product/details/thumb-4.jpg" alt="">
-                        </div>
+                        </div> -->
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-6">

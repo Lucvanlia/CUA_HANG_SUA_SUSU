@@ -1,10 +1,15 @@
 <?php
 
 // Kiểm tra xem có ID sản phẩm trong yêu cầu GET không
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-
-$result = mysqli_query($link, "SELECT * FROM dmsp ");
-$result_sp = mysqli_query($link, "SELECT * FROM dmsp ");
+$id = isset($_GET['page']) ? (int)$_GET['page'] : 0;
+$id_loai = isset($_GET['id_loai']) ? (int)$_GET['id_loai'] : 0;
+var_dump($_GET['id_loai']);
+if (isset($id_loai)) {
+    $result_sp = mysqli_query($link, "SELECT * FROM dmsp where id_loai = $id_loai");
+} else {
+    $result_sp = mysqli_query($link, "SELECT * FROM dmsp ");
+}
+// $result_sp = mysqli_query($link, "SELECT * FROM dmsp ");
 $result_banchay = mysqli_query($link, " SELECT * 
                                         FROM dmsp
                                         WHERE dmsp.id_sp in (
@@ -13,14 +18,14 @@ $result_banchay = mysqli_query($link, " SELECT *
                                                 GROUP BY id_sp
 
                                         )");
-$result_loai = mysqli_query($link, "SELECT * FROM `loai` ORDER BY `loai`.`tenloai` ASC");
-if ($result && mysqli_num_rows($result) > 0) {
-    $product = mysqli_fetch_array($result);
-    $loai = mysqli_fetch_array($result);
-} else {
-    echo "Sản phẩm không tồn tại!";
-    exit;
-}
+
+$sql_loai = "
+    SELECT loai.id_loai, loai.tenloai 
+    FROM loai 
+    INNER JOIN dmsp ON loai.id_loai = dmsp.id_loai 
+    GROUP BY loai.id_loai, loai.tenloai
+";
+$result_loai = mysqli_query($link, $sql_loai);
 
 ?>
 <!-- Breadcrumb Section Begin -->
@@ -95,11 +100,10 @@ if ($result && mysqli_num_rows($result) > 0) {
                                         </div>
                                         <div class="product__discount__item__text">
                                             <span></span>
-                                            <h5><a href="#"><?= $row_banchay['Tensp'] ?></a></h5>
+                                            <h6><a href="index.php?action=product&query=details&id=<?php echo $row_banchay['id_sp']?>"><?= $row_banchay['Tensp'] ?></a></h6>
                                             <div class="product__item__price"><?= number_format($km, 0, ',', '.') . 'VNĐ' ?> <span><span></span><?= number_format($row_banchay['gia'], 0, ',', '.') . 'VNĐ' ?></span></div>
                                             <form id="quick-buy-form" class="form-submit" action="index.php?action=cart&query=add" method="POST">
                                                 <input type="hidden" class="pid" value="<?= $row_banchay['id_sp'] ?>" name="id" />
-                                                <input type="hidden" class="pname" value="<?= $row_banchay['Tensp'] ?>" name="ten" />
                                                 <input type="hidden" class="pprice" value="<?= $row_banchay['gia'] ?>" name="gia" />
                                                 <input type="hidden" class="status" value="add" name="status" />
                                                 <input type="hidden" class="pimage" value="admin_test/modul/uploads/<?= $row_banchay['hinh'] ?>" name="hinh" />
@@ -128,12 +132,21 @@ if ($result && mysqli_num_rows($result) > 0) {
                         <div class="col-lg-4 col-md-5">
                             <div class="filter__sort">
                                 <span>Sort By</span>
-                                <select>
-                                    <option value="0">Default</option>
-                                    <option value="0">Default</option>
+                                <select id="sortPrice" onchange="sortProducts()">
+                                    <option value="desc">Giá giảm</option>
+                                    <option value="asc">Giá tăng</option>
                                 </select>
                             </div>
                         </div>
+                        <script>
+                            function sortProducts() {
+                                const sortValue = document.getElementById('sortPrice').value;
+                                const currentUrl = new URL(window.location.href);
+                                currentUrl.searchParams.set('sort', sortValue);
+                                window.location.href = currentUrl;
+                            }
+                        </script>
+
                         <div class="col-lg-4 col-md-4">
                             <div class="filter__found">
                                 <h6><span><?php echo mysqli_num_rows($result_sp) ?></span> sản phẩm </h6>
@@ -142,70 +155,84 @@ if ($result && mysqli_num_rows($result) > 0) {
                     </div>
                 </div>
                 <?php
-// Number of products per page
-$products_per_page = 6;
+                // Lấy id_loai từ URL
+                $id_loai = isset($_GET['id_loai']) ? (int)$_GET['id_loai'] : 0;
 
-// Query to count the total number of products
-$sql_count = "SELECT COUNT(*) AS total_products FROM dmsp"; // Adjust "dmsp" to your table name
-$result_count = mysqli_query($link, $sql_count);
-$row_count = mysqli_fetch_assoc($result_count);
-$total_products = $row_count['total_products'];
+                // Số sản phẩm trên mỗi trang
+                $products_per_page = 6;
 
-// Calculate the total pages
-$total_pages = ceil($total_products / $products_per_page);
+                // Truy vấn tổng số sản phẩm dựa trên loại (nếu có)
+                if ($id_loai > 0) {
+                    $sql_count = "SELECT COUNT(*) AS total_products FROM dmsp WHERE id_loai = $id_loai";
+                } else {
+                    $sql_count = "SELECT COUNT(*) AS total_products FROM dmsp";
+                }
+                $result_count = mysqli_query($link, $sql_count);
+                $row_count = mysqli_fetch_assoc($result_count);
+                $total_products = $row_count['total_products'];
 
-// Get the current page or default to 1
-$current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+                // Tính tổng số trang
+                $total_pages = ceil($total_products / $products_per_page);
 
-// Calculate the OFFSET for the current page
-$offset = ($current_page - 1) * $products_per_page;
+                // Lấy trang hiện tại từ URL hoặc mặc định là trang 1
+                $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 
-// Query to fetch products for the current page
-$sql_sp = "SELECT * FROM dmsp LIMIT $products_per_page OFFSET $offset";
-$result_sp = mysqli_query($link, $sql_sp);
+                // Tính OFFSET cho trang hiện tại
+                $offset = ($current_page - 1) * $products_per_page;
+                // Lấy giá trị sắp xếp từ URL
+                $sort_order = isset($_GET['sort']) && $_GET['sort'] == 'asc' ? 'ASC' : 'DESC';
 
-// Display the products and pagination as before
-?>
-<div class="row">
-    <?php while($row_sp = mysqli_fetch_assoc($result_sp)) { ?>
-        <div class="col-lg-4 col-md-6 col-sm-6">
-            <div class="product__item">
-                <div class="product__item__pic set-bg" data-setbg="admin_test/modul/uploads/<?= $row_sp['hinh'] ?>">
-                    <ul class="product__item__pic__hover">
-                        <li><a href="#"><i class="fa fa-heart"></i></a></li>
-                        <li><a href="#"><i class="fa fa-retweet"></i></a></li>
-                        <li><a href="#"><i class="fa fa-shopping-cart"></i></a></li>
-                    </ul>
+                // Sử dụng trong truy vấn sản phẩm
+                $sql_sp = "SELECT * FROM dmsp ORDER BY gia $sort_order LIMIT $products_per_page OFFSET $offset";
+                $result_sp = mysqli_query($link, $sql_sp);
+
+                // Truy vấn lấy sản phẩm cho trang hiện tại với điều kiện id_loai (nếu có)
+                if ($id_loai > 0) {
+                    $sql_sp = "SELECT * FROM dmsp WHERE id_loai = $id_loai LIMIT $products_per_page OFFSET $offset";
+                } else {
+                    $sql_sp = "SELECT * FROM dmsp LIMIT $products_per_page OFFSET $offset";
+                }
+                $result_sp = mysqli_query($link, $sql_sp);
+                ?>
+                <div class="row">
+                    <?php while ($row_sp = mysqli_fetch_assoc($result_sp)) { ?>
+                        <div class="col-lg-4 col-md-6 col-sm-6">
+                            <div class="product__item">
+                                <div class="product__item__pic set-bg" data-setbg="admin_test/modul/uploads/<?= $row_sp['hinh'] ?>">
+                                    <ul class="product__item__pic__hover">
+                                        <li><a href="#"><i class="fa fa-heart"></i></a></li>
+                                        <li><a href="#"><i class="fa fa-retweet"></i></a></li>
+                                        <li><a href="#"><i class="fa fa-shopping-cart"></i></a></li>
+                                    </ul>
+                                </div>
+                                <div class="product__item__text">
+                                    <h6><a href="index.php?action=product&query=details&id=<?php echo $row_sp['id_sp']?>"><?= $row_sp['Tensp'] ?></a></h6>
+                                    <h5><?= number_format($row_sp['gia'], 0, ',', '.') ?></h5>
+                                </div>
+                            </div>
+                        </div>
+                    <?php } ?>
                 </div>
-                <div class="product__item__text">
-                    <h6><a href="#"><?= $row_sp['Tensp']?></a></h6>
-                    <h5><?= number_format($row_sp['gia'], 0, ',', '.') ?></h5>
+
+                <?php
+                $id = isset($_GET['page']) ? $_GET['page'] : ''; // Giả sử bạn lấy 'id' từ URL hiện tại
+                ?>
+
+                <div class="product__pagination">
+                    <?php if ($current_page > 1): ?>
+                        <a href="?action=product&query=all&page=<?= $current_page - 1 ?>&id_loai=<?= $id_loai ?>"><i class="fa fa-long-arrow-left"></i> Pre</a>
+                    <?php endif; ?>
+
+                    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                        <a href="?action=product&query=all&page=<?= $i ?>&id_loai=<?= $id_loai ?>" class="<?= $i == $current_page ? 'active' : '' ?>"><?= $i ?></a>
+                    <?php endfor; ?>
+
+                    <?php if ($current_page < $total_pages): ?>
+                    </br> <a href="?action=product&query=all&page=<?= $current_page + 1 ?>&id_loai=<?= $id_loai ?>">Next <i class="fa fa-long-arrow-right"></i></a>
+                    <?php endif; ?>
                 </div>
+
             </div>
         </div>
-    <?php } ?>
-</div>
-
-<?php
-$id = isset($_GET['id']) ? $_GET['id'] : ''; // Giả sử bạn lấy 'id' từ URL hiện tại
-?>
-
-<div class="product__pagination">
-    <?php if ($current_page > 1): ?>
-        <a href="?page=<?= $current_page - 1 ?>&id=<?= $id ?>"><i class="fa fa-long-arrow-left"></i> Pre</a>
-    <?php endif; ?>
-
-    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-        <a href="?page=<?= $i ?>&id=<?= $id ?>" class="<?= $i == $current_page ? 'active' : '' ?>"><?= $i ?></a>
-    <?php endfor; ?>
-
-    <?php if ($current_page < $total_pages): ?>
-        <a href="?page=<?= $current_page + 1 ?>&id=<?= $id ?>">Next <i class="fa fa-long-arrow-right"></i></a>
-    <?php endif; ?>
-</div>
-
-
-        </div>
-    </div>
 </section>
 <!-- Product Section End -->

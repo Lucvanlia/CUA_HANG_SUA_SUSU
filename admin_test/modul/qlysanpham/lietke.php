@@ -38,7 +38,7 @@ $total_products = $total_row['total'];
     </div>
     <!-- Button Thêm sản phẩm -->
     <div class="form-group col-lg-4 col-md-6 ">
-        <a data-fancybox data-type="ajax" href="modul/qlysanpham/them.php" class="btn btn-primary" id="addProductBtn">Load content using AJAX</a>
+        <a data-fancybox data-type="ajax" href="modul/qlysanpham/them.php" class="btn btn-primary" id="addProductBtn">Thêm sản phẩm</a>
 
     </div>
     <!-- Popup nhập thông tin sản phẩm -->

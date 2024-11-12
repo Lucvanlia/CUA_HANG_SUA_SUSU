@@ -44,6 +44,8 @@ elseif (isset($_GET['action']) && $_GET['action'] == 'details' && isset($_GET['i
             header("Location: https://banhangviet-tmi.net/doan_php/");
         } elseif ($tam == 'profile' && $tam1 == 'profile') {
             include_once "profile.php";
+        } elseif ($tam == 'blog' && $tam1 == 'detail') {
+            include_once "page/Blogs_Detail.php";
         } elseif ($tam == 'profile' && $tam1 == 'orders') {
             if (isset($_SESSION['login-facebook']) || isset($_SESSION['id_user']) || isset($_SESSION['login-google'])) {
                 require_once "orders.php";
@@ -52,6 +54,9 @@ elseif (isset($_GET['action']) && $_GET['action'] == 'details' && isset($_GET['i
             }
         } elseif ($tam == 'checkout' && $tam1 == 'checkout') {
             include_once "cart.php";
+        }elseif ($tam == 'blog' && $tam1 == 'all') {
+            include_once "page/Blogs_List.php";
+            // ?action=blog&query=all
         } elseif ($tam == 'cart' && $tam1 == 'test') {
             if(isset($_POST['order']))
             {
