@@ -49,6 +49,9 @@
     } elseif ($tam == 'timkiem' && $tam1 == 'timkiem_loai') {
         include "modul/qlyloai/timkiem.php";
     }
+    elseif ($tam == 'quanlydonvi' && $tam1 == 'them') {
+        include "modul/qlydonvi/lietke.php";
+    }
     //============ KT Trang xuat xu =================
     //============Trang diadiem =================
     elseif ($tam == 'quanlydiadiem' && $tam1 == 'them') {

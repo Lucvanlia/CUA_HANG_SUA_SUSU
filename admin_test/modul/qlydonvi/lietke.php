@@ -4,43 +4,43 @@
 <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0.30/dist/fancybox.umd.js"></script>
 <?php
 
-// Lấy danh sách danh mục
-$query = "SELECT * FROM DanhMuc ORDER BY parent_dm ASC, id_dm ASC";
+// Lấy danh sách đơn vị
+$query = "SELECT * FROM donvi ORDER BY parent_dv ASC, id_dv ASC";
 $result = mysqli_query($link, $query);
 
-$danhMuc = [];
+$donvi = [];
 if ($result && mysqli_num_rows($result) > 0) {
     while ($row = mysqli_fetch_assoc($result)) {
-        $danhMuc[] = $row;
+        $donvi[] = $row;
     }
 }
 
-// Hàm hiển thị danh mục phân cấp dưới dạng bảng
-function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
+// Hàm hiển thị đơn vị phân cấp dưới dạng bảng
+function hienThidonvi($donvi, $parent = 0, $level = 0)
 {
     $html = '';
-    foreach ($danhMuc as $dm) {
-        if ($dm['parent_dm'] == $parent) {
+    foreach ($donvi as $dm) {
+        if ($dm['parent_dv'] == $parent) {
             $prefix = str_repeat('|--->', $level); // Thêm ký tự phân cấp
-            $icon = $level === 0 ? '<i class="fas fa-folder-open text-primary"></i>' : ''; // Icon cho danh mục cha
+            $icon = $level === 0 ? '<i class="fas fa-folder-open text-primary"></i>' : ''; // Icon cho đơn vị cha
             $html .= '<tr>';
-            $html .= '<td> &nbsp;&nbsp;' . $icon . ' &nbsp;&nbsp;&nbsp;' . $prefix . $dm['Ten_dm'] . '</td>';
+            $html .= '<td> &nbsp;&nbsp;' . $icon . ' &nbsp;&nbsp;&nbsp;' . $prefix . $dm['Ten_dv'] . '</td>';
             $html .= '<td class="text-center">';
             $html .= '  <button class="btn btn-sm btn-warning btn-edit" 
-                            data-id="' . $dm['id_dm'] . '" 
-                            data-name="' . $dm['Ten_dm'] . '" 
-                            data-parent="' . $dm['parent_dm'] . '">
+                            data-id="' . $dm['id_dv'] . '" 
+                            data-name="' . $dm['Ten_dv'] . '" 
+                            data-parent="' . $dm['parent_dv'] . '">
                             <i class="fas fa-edit"></i>
                         </button>';
             $html .= '  <button class="btn btn-sm btn-danger btn-delete" 
-                            data-id="' . $dm['id_dm'] . '">
+                            data-id="' . $dm['id_dv'] . '">
                             <i class="fas fa-trash-alt"></i>
                         </button>';
             $html .= '</td>';
             $html .= '</tr>';
 
-            // Gọi đệ quy để hiển thị danh mục con
-            $html .= hienThiDanhMuc($danhMuc, $dm['id_dm'], $level + 1);
+            // Gọi đệ quy để hiển thị đơn vị con
+            $html .= hienThidonvi($donvi, $dm['id_dv'], $level + 1);
         }
     }
     return $html;
@@ -52,7 +52,7 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý danh mục </title>
+    <title>Quản lý đơn vị </title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -64,24 +64,24 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-header bg-primary text-white">
-                        <h5>Thêm/Sửa danh mục</h5>
+                        <h5>Thêm/Sửa đơn vị</h5>
                     </div>
                     <div class="card-body">
 
-                        <form id="formDanhMuc">
+                        <form id="formdonvi">
                             <div class="mb-3">
-                                <label for="Ten_dm" class="form-label">Tên danh mục</label>
+                                <label for="Ten_dv" class="form-label">Tên đơn vị</label>
                                 <input type="hidden" name="action" value="add">
-                                <input type="hidden" id="id_dm" name="id_dm"> <!-- ID danh mục để chỉnh sửa -->
-                                <input type="text" class="form-control" id="Ten_dm" name="Ten_dm" placeholder="Nhập tên danh mục" required>
+                                <input type="hidden" id="id_dv" name="id_dv"> <!-- ID đơn vị để chỉnh sửa -->
+                                <input type="text" class="form-control" id="Ten_dv" name="Ten_dv" placeholder="Nhập tên đơn vị" required>
                             </div>
                             <div class="mb-3">
-                                <label for="parent_dm" class="form-label">Danh mục cha</label>
-                                <select class="form-select" id="parent_dm" name="parent_dm">
-                                    <option value="0">Không có danh mục cha</option>
-                                    <!-- Hiển thị danh mục cha -->
-                                    <?php foreach ($danhMuc as $dm): ?>
-                                        <option value="<?= $dm['id_dm'] ?>"><?= $dm['Ten_dm'] ?></option>
+                                <label for="parent_dv" class="form-label">đơn vị cha</label>
+                                <select class="form-select" id="parent_dv" name="parent_dv">
+                                    <option value="0">Không có đơn vị cha</option>
+                                    <!-- Hiển thị đơn vị cha -->
+                                    <?php foreach ($donvi as $dm): ?>
+                                        <option value="<?= $dm['id_dv'] ?>"><?= $dm['Ten_dv'] ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -97,23 +97,23 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
                 </div>
             </div>
 
-            <!-- Hiển thị danh mục bên phải -->
+            <!-- Hiển thị đơn vị bên phải -->
             <div class="col-md-8">
 
                 <div class="card">
                     <div class="card-header bg-primary text-white">
-                        <h5>Danh sách danh mục</h5>
+                        <h5>Danh sách đơn vị</h5>
                     </div>
                     <div class="card-body">
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th>Tên danh mục</th>
+                                    <th>Tên đơn vị</th>
                                     <th class="text-center">Hành động</th>
                                 </tr>
                             </thead>
-                            <tbody id="danhMucTable">
-                                <?= hienThiDanhMuc($danhMuc); ?>
+                            <tbody id="donviTable">
+                                <?= hienThidonvi($donvi); ?>
                             </tbody>
                         </table>
                     </div>
@@ -125,14 +125,14 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <script>
         $(document).ready(function() {
-            // Thêm danh mục
+            // Thêm đơn vị
 
             $('#btnAdd').on('click', function(e) {
                 e.preventDefault();
                 $.ajax({
-                    url: 'ajax-process/danhmuc.php',
+                    url: 'ajax-process/donvi.php',
                     type: 'POST',
-                    data: $('#formDanhMuc').serialize(),
+                    data: $('#formdonvi').serialize(),
                     dataType: 'json',
                     success: function(response) {
                         console.log(response);
@@ -144,7 +144,7 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
                                             <img  src="img/verified.gif" width="50" height="50">
                                     </div>
                                     <h3>Thông báo</h3>
-                                    <p>Trạng thái: <strong>Bạn đẫ thêm danh mục thành công</strong></p>
+                                    <p>Trạng thái: <strong>Bạn đẫ thêm đơn vị thành công</strong></p>
                                     <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
                                 </div>`,
                                 type: "html",
@@ -153,8 +153,8 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
                                     console.info("Fancybox hiện đã mở!");
                                 },
                             });
-                            loadDanhMuc(); // Tải lại danh mục
-                            loadParentDanhMuc()
+                            loaddonvi(); // Tải lại đơn vị
+                            loadParentdonvi()
                         } else {
                             // alert(response.message);
                             Fancybox.show([{
@@ -189,11 +189,11 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
                     e.preventDefault();
 
                     // Kiểm tra dữ liệu trước khi gửi AJAX
-                    const formData = $('#formDanhMuc').serialize();
+                    const formData = $('#formdonvi').serialize();
                     console.log(formData); // Kiểm tra dữ liệu gửi đi
 
                     $.ajax({
-                        url: 'ajax-process/danhmuc.php',
+                        url: 'ajax-process/donvi.php',
                         type: 'POST',
                         data: formData,
                         dataType: 'json',
@@ -207,7 +207,7 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
                                 <img src="img/verified.gif" width="50" height="50">
                             </div>
                             <h3>Thông báo</h3>
-                            <p>Trạng thái: <strong>Bạn đã sửa danh mục thành công</strong></p>
+                            <p>Trạng thái: <strong>Bạn đã sửa đơn vị thành công</strong></p>
                             <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
                         </div>`,
                                     type: "html",
@@ -217,9 +217,9 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
                                     },
                                 });
 
-                                // Tải lại danh mục và danh mục cha
-                                loadDanhMuc();
-                                loadParentDanhMuc();
+                                // Tải lại đơn vị và đơn vị cha
+                                loaddonvi();
+                                loadParentdonvi();
                             } else {
                                 Fancybox.show([{
                                     src: `
@@ -255,13 +255,13 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
                 e.preventDefault(); // Ngăn chặn hành động mặc định
                 const id = $(this).data('id');
 
-                if (confirm('Bạn có chắc chắn muốn xóa danh mục này cùng với các danh mục con?')) {
+                if (confirm('Bạn có chắc chắn muốn xóa đơn vị này cùng với các đơn vị con?')) {
                     $.ajax({
-                        url: 'ajax-process/danhmuc.php',
+                        url: 'ajax-process/donvi.php',
                         type: 'POST',
                         data: {
                             action: 'delete',
-                            id_dm: id,
+                            id_dv: id,
                         },
                         dataType: 'json',
                         success: function(response) {
@@ -279,9 +279,9 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
                                     type: "html",
                                 }]);
 
-                                // Tải lại danh mục sau khi xóa thành công
-                                loadDanhMuc();
-                                loadParentDanhMuc();
+                                // Tải lại đơn vị sau khi xóa thành công
+                                loaddonvi();
+                                loadParentdonvi();
                             } else {
                                 Fancybox.show([{
                                     src: `
@@ -296,7 +296,7 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
                                     type: "html",
                                 }]);
                             }
-                            console.log($('#formDanhMuc').serialize());
+                            console.log($('#formdonvi').serialize());
                         },
                         error: function(xhr, status, error) {
                             console.error(xhr.responseText);
@@ -308,36 +308,36 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
 
         });
 
-        function loadParentDanhMuc() {
+        function loadParentdonvi() {
             $.ajax({
-                url: 'ajax-process/danhmuc.php',
+                url: 'ajax-process/donvi.php',
                 type: 'POST',
                 data: {
                     action: 'loadParent'
                 },
                 success: function(response) {
-                    $('#parent_dm').html(response); // Cập nhật danh sách
+                    $('#parent_dv').html(response); // Cập nhật danh sách
                 },
                 error: function(xhr, status, error) {
-                    console.error("Lỗi khi tải danh mục cha:", error);
+                    console.error("Lỗi khi tải đơn vị cha:", error);
                 }
             });
         }
 
-        function loadDanhMuc() {
+        function loaddonvi() {
             $.ajax({
-                url: 'ajax-process/danhmuc.php',
+                url: 'ajax-process/donvi.php',
                 type: 'POST', // Phương thức GET
                 data: {
                     action: 'load'
                 },
                 success: function(response) {
-                    // Cập nhật danh sách danh mục vào phần tử có id là danhmuc-section
-                    $('#danhMucTable').html(response);
+                    // Cập nhật danh sách đơn vị vào phần tử có id là donvi-section
+                    $('#donviTable').html(response);
                 },
                 error: function(xhr, status, error) {
-                    console.error("Lỗi khi tải danh mục:", error);
-                    $('#danhMucTable').html("<p>Đã có lỗi xảy ra khi tải danh mục.</p>");
+                    console.error("Lỗi khi tải đơn vị:", error);
+                    $('#donviTable').html("<p>Đã có lỗi xảy ra khi tải đơn vị.</p>");
                 }
             });
         }
@@ -345,15 +345,15 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
             e.preventDefault();
 
             $.ajax({
-                url: 'ajax-process/danhmuc.php',
+                url: 'ajax-process/donvi.php',
                 type: 'POST',
-                data: $('#formDanhMuc').serialize(),
+                data: $('#formdonvi').serialize(),
                 dataType: 'json',
                 success: function(response) {
                     console.log(response); // Thêm dòng này để kiểm tra phản hồi từ server
                     if (response.status === 'success') {
                         alert(response.message);
-                        $('#formDanhMuc').reset(); // Reset form
+                        $('#formdonvi').reset(); // Reset form
                     } else {
                         alert(response.message);
                     }
@@ -368,14 +368,14 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
 
 
         $(document).on('click', '.btn-edit', function() {
-            const id = $(this).data('id'); // Lấy ID danh mục
-            const name = $(this).data('name'); // Lấy tên danh mục
-            const parent = $(this).data('parent'); // Lấy ID danh mục cha
+            const id = $(this).data('id'); // Lấy ID đơn vị
+            const name = $(this).data('name'); // Lấy tên đơn vị
+            const parent = $(this).data('parent'); // Lấy ID đơn vị cha
 
             // Gán dữ liệu vào form
-            $('#id_dm').val(id); // Gán ID vào input hidden
-            $('#Ten_dm').val(name); // Gán tên danh mục
-            $('#parent_dm').val(parent); // Gán danh mục cha
+            $('#id_dv').val(id); // Gán ID vào input hidden
+            $('#Ten_dv').val(name); // Gán tên đơn vị
+            $('#parent_dv').val(parent); // Gán đơn vị cha
 
             // Đổi action của form thành "edit"
             $('input[name="action"]').val('edit');
@@ -387,14 +387,14 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
 
         });
         $(document).on('click', '.btn-edit', function() {
-            const id = $(this).data('id'); // Lấy ID danh mục
-            const name = $(this).data('name'); // Lấy tên danh mục
-            const parent = $(this).data('parent'); // Lấy ID danh mục cha
+            const id = $(this).data('id'); // Lấy ID đơn vị
+            const name = $(this).data('name'); // Lấy tên đơn vị
+            const parent = $(this).data('parent'); // Lấy ID đơn vị cha
 
             // Gán dữ liệu vào form
-            $('#id_dm').val(id); // Gán ID vào input hidden
-            $('#Ten_dm').val(name); // Gán tên danh mục
-            $('#parent_dm').val(parent); // Gán danh mục cha
+            $('#id_dv').val(id); // Gán ID vào input hidden
+            $('#Ten_dv').val(name); // Gán tên đơn vị
+            $('#parent_dv').val(parent); // Gán đơn vị cha
 
             // Đổi action của form thành "edit"
             $('input[name="action"]').val('edit');
@@ -415,7 +415,7 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
             $('input[name="action"]').val('add');
 
             // Đặt lại form (nếu có các input khác)
-            $('#formDanhMuc')[0].reset();
+            $('#formdonvi')[0].reset();
 
             // Loại bỏ các tham số không cần thiết trong URL
             const baseUrl = window.location.origin + window.location.pathname;
@@ -424,7 +424,7 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
 
 
 
-        // Xóa danh mục
+        // Xóa đơn vị
     </script>
 </body>
 

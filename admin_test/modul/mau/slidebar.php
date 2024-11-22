@@ -63,8 +63,8 @@
                 <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Quản Lý:</h6>
-                        <a class="collapse-item" href="index.php?action=quanlychatlieu&query=them">Chất liệu</a>
-                        <a class="collapse-item" href="index.php?action=quanlyhang&query=them">Hãng</a>
+                        <a class="collapse-item" href="index.php?action=quanlychatlieu&query=them">Danh Mục</a>
+                        <a class="collapse-item" href="index.php?action=quanlydonvi&query=them">Đơn Vị</a>
                         <a class="collapse-item" href="index.php?action=quanlyxuatxu&query=them">Xuất xứ </a>
                         <a class="collapse-item" href="index.php?action=quanlyloai&query=them">Loại</a>
                         <a class="collapse-item" href="index.php?action=quanlydiadiem&query=them">Địa điểm</a>

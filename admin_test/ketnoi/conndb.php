@@ -1,6 +1,6 @@
 <?PHP
 	//MO VA KNCSDL
-	$link = mysqli_connect("localhost", "root", "", "banhangviet");
+	$link = mysqli_connect("localhost", "root", "", "susu");
 	//Xac lop font chu
 	mysqli_set_charset($link, "UTF8");
 	//Kiem tra viec KN Thanh Cong Khong

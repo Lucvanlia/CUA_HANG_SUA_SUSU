@@ -1,0 +1,56 @@
+Array
+(
+    [action] => edit
+    [id_dm] => 
+    [Ten_dm] => Mẹ Và Bé123
+    [parent_dm] => 0
+)
+Array
+(
+    [action] => edit
+    [id_dm] => 
+    [Ten_dm] => Mẹ Và Bé123
+    [parent_dm] => 0
+)
+Array
+(
+    [action] => edit
+    [id_dm] => 
+    [Ten_dm] => Mẹ Và Bé123
+    [parent_dm] => 0
+)
+Array
+(
+    [action] => edit
+    [id_dm] => 
+    [Ten_dm] => Mẹ Và Bé123
+    [parent_dm] => 0
+)
+Array
+(
+    [action] => edit
+    [id_dm] => 
+    [Ten_dm] => Mẹ Và Bé
+    [parent_dm] => 0
+)
+Array
+(
+    [action] => edit
+    [id_dm] => 
+    [Ten_dm] => Mẹ Và Bé
+    [parent_dm] => 0
+)
+Array
+(
+    [action] => edit
+    [id_dm] => 80
+    [Ten_dm] => Mẹ Và Bé
+    [parent_dm] => 0
+)
+Array
+(
+    [action] => edit
+    [id_dm] => 80
+    [Ten_dm] => Mẹ Và Bé Ơi
+    [parent_dm] => 0
+)
