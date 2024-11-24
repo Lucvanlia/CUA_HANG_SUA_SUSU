@@ -6,6 +6,7 @@ if (isset($_POST['action'])) {
 
     switch ($action) {
         case 'add':
+            print_r($_FILES);
             // Xử lý thêm sản phẩm
             $Tensp = $_POST['Tensp'];
             $MoTa = $_POST['MoTa'];

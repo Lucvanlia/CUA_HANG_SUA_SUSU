@@ -29,7 +29,10 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
             $html .= '  <button class="btn btn-sm btn-warning btn-edit" 
                             data-id="' . $dm['id_dm'] . '" 
                             data-name="' . $dm['Ten_dm'] . '" 
-                            data-parent="' . $dm['parent_dm'] . '">
+                            data-parent="' . $dm['parent_dm'] . '"
+                            data-hinh="' . $dm['Hinh_dm'] . '"
+                            
+                            >
                             <i class="fas fa-edit"></i>
                         </button>';
             $html .= '  <button class="btn btn-sm btn-danger btn-delete" 
@@ -68,7 +71,7 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
                     </div>
                     <div class="card-body">
 
-                        <form id="formDanhMuc">
+                        <form id="formDanhMuc" enctype="multipart/form-data">
                             <div class="mb-3">
                                 <label for="Ten_dm" class="form-label">Tên danh mục</label>
                                 <input type="hidden" name="action" value="add">
@@ -84,6 +87,17 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
                                         <option value="<?= $dm['id_dm'] ?>"><?= $dm['Ten_dm'] ?></option>
                                     <?php endforeach; ?>
                                 </select>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-group">
+                                    <label for="Hinh_dm">Hình ảnh:</label>
+                                    <input type="file" class="form-control" id="Hinh_dm" name="Hinh_dm" accept="image/*">
+                                </div>
+                                <div class="form-group">
+                                    <img id="Hinh_dm_preview" src="" alt="Hình ảnh" style="width: 100px; height: 100px; object-fit: cover;display: none;">
+                                    <br>
+                                    <img id="imagePreview" src="" alt="Preview" style="display: none; width: 100px; height: 100px; object-fit: cover;">
+                                </div>
                             </div>
                             <div class="d-flex justify-content-between">
                                 <div class="d-flex justify-content-between">
@@ -129,46 +143,55 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
 
             $('#btnAdd').on('click', function(e) {
                 e.preventDefault();
+
+                // Lấy dữ liệu từ form và chuẩn bị gửi bằng FormData
+                const formData = new FormData($('#formDanhMuc')[0]);
+
+                console.log(formData); // Kiểm tra dữ liệu gửi đi
+
                 $.ajax({
                     url: 'ajax-process/danhmuc.php',
                     type: 'POST',
-                    data: $('#formDanhMuc').serialize(),
+                    data: formData,
+                    processData: false, // Không xử lý dữ liệu
+                    contentType: false, // Không thiết lập content type
                     dataType: 'json',
                     success: function(response) {
                         console.log(response);
                         if (response.status === 'success') {
                             Fancybox.show([{
                                 src: `
-                                <div style="padding: 20px; text-align: center;">
-                                    <div style="font-size: 50px; color: green; margin-bottom: 15px; ">
-                                            <img  src="img/verified.gif" width="50" height="50">
-                                    </div>
-                                    <h3>Thông báo</h3>
-                                    <p>Trạng thái: <strong>Bạn đẫ thêm danh mục thành công</strong></p>
-                                    <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
-                                </div>`,
+                    <div style="padding: 20px; text-align: center;">
+                        <div style="font-size: 50px; color: green; margin-bottom: 15px;">
+                            <img src="img/verified.gif" width="50" height="50">
+                        </div>
+                        <h3>Thông báo</h3>
+                        <p>Trạng thái: <strong>Bạn đã thêm danh mục thành công</strong></p>
+                        <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                    </div>`,
                                 type: "html",
-                            }, ], {
+                            }], {
                                 afterShow: (instance, current) => {
                                     console.info("Fancybox hiện đã mở!");
                                 },
                             });
+                            $('#formDanhMuc')[0].reset(); // Reset form
+                            $('#imagePreview').hide(); // Ẩn preview ảnh
                             loadDanhMuc(); // Tải lại danh mục
-                            loadParentDanhMuc()
+                            loadParentDanhMuc(); // Tải lại danh mục cha
                         } else {
-                            // alert(response.message);
                             Fancybox.show([{
                                 src: `
-                                <div style="padding: 20px; text-align: center;">
-                                    <div style="font-size: 50px; color: green; margin-bottom: 15px;">
-                                            <img class ="img-thumnail"  src="img/delivery.gif" width="50" height="50">
-                                    </div>
-                                    <h3>Thông báo</h3>
-                                    <p>Trạng thái: <strong>${response.message}</strong></p>
-                                    <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
-                                </div>`,
+                    <div style="padding: 20px; text-align: center;">
+                        <div style="font-size: 50px; color: green; margin-bottom: 15px;">
+                            <img class="img-thumbnail" src="img/delivery.gif" width="50" height="50">
+                        </div>
+                        <h3>Thông báo</h3>
+                        <p>Trạng thái: <strong>${response.message}</strong></p>
+                        <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                    </div>`,
                                 type: "html",
-                            }, ], {
+                            }], {
                                 afterShow: (instance, current) => {
                                     console.info("Fancybox hiện đã mở!");
                                 },
@@ -181,6 +204,7 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
                     }
                 });
             });
+
             $('.btn-edit').on('click', function() {
 
 
@@ -371,11 +395,13 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
             const id = $(this).data('id'); // Lấy ID danh mục
             const name = $(this).data('name'); // Lấy tên danh mục
             const parent = $(this).data('parent'); // Lấy ID danh mục cha
+            const hinh = $(this).data('hinh'); // Lấy đường dẫn hình ảnh
 
             // Gán dữ liệu vào form
             $('#id_dm').val(id); // Gán ID vào input hidden
             $('#Ten_dm').val(name); // Gán tên danh mục
             $('#parent_dm').val(parent); // Gán danh mục cha
+            $('#imagePreview').attr('src', 'uploads/' + hinh); // Hiển thị ảnh trong form (Giả sử có thẻ <img id="Hinh_dm_preview">)
 
             // Đổi action của form thành "edit"
             $('input[name="action"]').val('edit');
@@ -384,33 +410,15 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
             $('#btnAdd').hide();
             $('#btnEdit').show();
             $('#btnBack').show();
-
+            $('#imagePreview').show();
         });
-        $(document).on('click', '.btn-edit', function() {
-            const id = $(this).data('id'); // Lấy ID danh mục
-            const name = $(this).data('name'); // Lấy tên danh mục
-            const parent = $(this).data('parent'); // Lấy ID danh mục cha
 
-            // Gán dữ liệu vào form
-            $('#id_dm').val(id); // Gán ID vào input hidden
-            $('#Ten_dm').val(name); // Gán tên danh mục
-            $('#parent_dm').val(parent); // Gán danh mục cha
-
-            // Đổi action của form thành "edit"
-            $('input[name="action"]').val('edit');
-
-            // Chuyển nút submit thành nút sửa
-            $('#btnAdd').hide();
-            $('#btnEdit').show();
-            $('#btnBack').show();
-
-        });
         $(document).on('click', '#btnBack', function() {
             // Chuyển nút trở về trạng thái "Thêm"
             $('#btnAdd').show();
             $('#btnEdit').hide();
             $('#btnBack').hide();
-
+            $('#imagePreview').hide();
             // Đặt lại action của form thành "add"
             $('input[name="action"]').val('add');
 
@@ -422,6 +430,18 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
             window.history.pushState({}, '', baseUrl);
         });
 
+        $('#Hinh_dm').on('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#imagePreview').attr('src', e.target.result).show();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                $('#imagePreview').hide();
+            }
+        });
 
 
         // Xóa danh mục

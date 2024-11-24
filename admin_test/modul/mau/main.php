@@ -52,6 +52,9 @@
     elseif ($tam == 'quanlydonvi' && $tam1 == 'them') {
         include "modul/qlydonvi/lietke.php";
     }
+    elseif ($tam == 'quanlynhacungcap' && $tam1 == 'them') {
+        include "modul/qlynhacungcap/lietke.php";
+    }
     //============ KT Trang xuat xu =================
     //============Trang diadiem =================
     elseif ($tam == 'quanlydiadiem' && $tam1 == 'them') {
