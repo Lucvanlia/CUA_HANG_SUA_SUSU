@@ -47,7 +47,6 @@
         <div class=" col-lg-12">
             <div class="main-container">
                 <textarea id="editor" name="MoTa_sp">
-                <p>Hello from CKEditor 5!</p>
             </textarea>
             </div>
         </div>
@@ -59,6 +58,15 @@
             <input type="file" class="form-control" name="Hinh_Nen" accept="image/*" id="imageUpload" required>
             <img id="imagePreview" src="#" alt="Hình nền" style="display: none; margin-top: 10px; max-width: 200px;">
         </div>
+        <div class="mb-3">
+            <label class="form-label">Hình Chi Tiết</label>
+            <div id="imagePreviewContainer">
+                <!-- Khu vực hiển thị hình ảnh preview -->
+            </div>
+            <input type="file" id="files" name="files[]" multiple accept="image/*">
+            <p id="fileCount">Đã chọn 0 tệp</p>
+
+        </div>
 
         <!-- <div class="row py-2">
             <div class="col-lg-12 col-md-12">
@@ -68,17 +76,6 @@
         <!-- Submit -->
         <button type="submit" class="btn btn-primary" id="btnAdd"> Thêm Sản Phẩm</button>
     </form>
-
-    <div class="row py-2">
-        <div class="col-lg-12 col-md-12">
-            <form class="dropzone" id="dropzoneArea">
-                <div class="dz-default dz-message">
-                    <span>Kéo và thả tệp vào đây hoặc nhấp để tải lên</span>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- Dropzone cho phần tải lên nhiều ảnh -->
     <!-- <div class="row py-2">
         <div class="col-lg-12 col-md-12">
@@ -88,9 +85,41 @@
 </div>
 
 <!-- A friendly reminder to run on a server, remove this during the integration. -->
+<style>
+    .image-preview {
+        display: inline-block;
+        position: relative;
+        margin: 5px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        overflow: hidden;
+        width: 100px;
+        height: 100px;
+    }
 
+    .image-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .delete-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background-color: rgba(255, 0, 0, 0.7);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 20px;
+        text-align: center;
+    }
+</style>
 <script>
-   
     // Gửi form qua AJAX
     $(document).ready(function() {
         // Load dữ liệu danh mục, xuất xứ, nhà cung cấp
@@ -234,8 +263,13 @@
                         </div>`,
                             type: "html",
                         }]);
-                        $("#formSanPham")[0].reset();
-                        $("#imagePreview").hide();
+                        // Reset form và hình ảnh
+                        $('#formSanPham')[0].reset(); // Reset form
+                        $('#imagePreview').hide(); // Ẩn preview ảnh
+                        $('#files').val(''); // Reset input file hình ảnh chi tiết
+                        updatePreview(); // Cập nhật lại giao diện
+                        // Nếu bạn có phần preview cho ảnh nền, reset ảnh nền (nếu có)
+                        $('#Hinh_Nen').val(''); // Reset input file hình nền nếu có
                         myDropzone.removeAllFiles();
                     } else {
                         Fancybox.show([{
@@ -322,6 +356,129 @@
             $sizeRow.find('.child-dv').empty().prop('disabled', true).append('<option value="">Chọn kích thước con</option>');
         }
     });
+    // Mảng lưu trữ các tệp đã chọn
+    let selectedFiles = [];
+
+    // Xử lý khi chọn file
+    document.getElementById("files").addEventListener("change", function(event) {
+        const files = event.target.files;
+
+        // Thêm file mới vào mảng
+        Array.from(files).forEach((file) => {
+            if (!selectedFiles.some(f => f.name === file.name)) {
+                selectedFiles.push(file); // Tránh thêm file trùng lặp
+            }
+        });
+
+        // Cập nhật giao diện preview
+        updatePreview();
+    });
+
+    // Hàm cập nhật giao diện preview
+    function updatePreview() {
+        const previewContainer = document.getElementById("imagePreviewContainer");
+        const fileCount = document.getElementById("fileCount");
+
+        // Xóa tất cả preview cũ
+        previewContainer.innerHTML = "";
+
+        // Hiển thị các hình ảnh trong mảng
+        selectedFiles.forEach((file, index) => {
+            if (file.type.startsWith("image/")) {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    const previewDiv = document.createElement("div");
+                    previewDiv.classList.add("image-preview");
+
+                    // Tạo phần tử hình ảnh
+                    const img = document.createElement("img");
+                    img.src = e.target.result;
+                    img.alt = file.name;
+
+                    // Tạo nút xóa
+                    const deleteBtn = document.createElement("button");
+                    deleteBtn.classList.add("delete-btn");
+                    deleteBtn.innerText = "x";
+
+                    // Thêm sự kiện xóa
+                    deleteBtn.addEventListener("click", function() {
+                        selectedFiles.splice(index, 1); // Xóa file khỏi mảng
+                        updatePreview(); // Cập nhật lại giao diện
+                    });
+
+                    // Thêm hình và nút xóa vào phần tử chứa
+                    previewDiv.appendChild(img);
+                    previewDiv.appendChild(deleteBtn);
+
+                    // Thêm phần tử chứa vào container
+                    previewContainer.appendChild(previewDiv);
+                };
+
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Cập nhật số lượng tệp đã chọn
+        fileCount.innerText = `Đã chọn ${selectedFiles.length} tệp`;
+    }
+    $('#btnAdd').on('click', function(e) {
+        e.preventDefault();
+
+        // Lấy dữ liệu từ form và chuẩn bị gửi bằng FormData
+        const formData = new FormData($('#formSanPham')[0]);
+
+        // Thêm ảnh chi tiết vào formData
+        const files = document.getElementById('files').files;
+        for (let i = 0; i < files.length; i++) {
+            formData.append('files[]', files[i]);
+        }
+
+        $.ajax({
+            url: 'ajax-process/sanpham.php',
+            type: 'POST',
+            data: formData,
+            processData: false, // Không xử lý dữ liệu
+            contentType: false, // Không thiết lập content type
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    Fancybox.show([{
+                        src: `
+                    <div style="padding: 20px; text-align: center;">
+                        <div style="font-size: 50px; color: green; margin-bottom: 15px;">
+                            <img src="img/verified.gif" width="50" height="50">
+                        </div>
+                        <h3>Thông báo</h3>
+                        <p>Trạng thái: <strong>Bạn đã thêm sản phẩm thành công</strong></p>
+                        <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                    </div>`,
+                        type: "html",
+                    }]);
+
+                    $('#formSanPham')[0].reset(); // Reset form
+                    $('#imagePreview').hide(); // Ẩn preview ảnh
+                } else {
+                    Fancybox.show([{
+                        src: `
+                    <div style="padding: 20px; text-align: center;">
+                        <div style="font-size: 50px; color: red; margin-bottom: 15px;">
+                            <img src="img/delivery.gif" width="50" height="50">
+                        </div>
+                        <h3>Thông báo</h3>
+                        <p>Trạng thái: <strong>${response.message}</strong></p>
+                        <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                    </div>`,
+                        type: "html",
+                    }]);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error(xhr.responseText);
+                alert('Đã có lỗi xảy ra!');
+            }
+        });
+    });
 </script>
 <!-- Thêm jQuery nếu chưa có -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -330,38 +487,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-maskmoney/3.1.1/jquery.maskMoney.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dropzone/dist/dropzone.css">
 <script src="https://cdn.jsdelivr.net/npm/dropzone/dist/dropzone.min.js"></script>
-<link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/43.3.1/ckeditor5.css">
-<script type="importmap">
-    {
-                "imports": {
-                    "ckeditor5": "https://cdn.ckeditor.com/ckeditor5/43.3.1/ckeditor5.js",
-                    "ckeditor5/": "https://cdn.ckeditor.com/ckeditor5/43.3.1/"
-                }
-            }
-        </script>
-<script type="module">
-    import {
-        ClassicEditor,
-        Essentials,
-        Paragraph,
-        Bold,
-        Italic,
-        Image,
-        Font
-    } from 'ckeditor5';
-
-    ClassicEditor
-        .create(document.querySelector('#editor'), {
-            plugins: [Essentials, Paragraph, Bold, Italic, Font],
-            toolbar: [
-                'undo', 'redo', '|', 'bold', 'italic', '|',
-                'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor'
-            ]
-        })
-        .then(editor => {
-            window.editor = editor;
-        })
-        .catch(error => {
-            console.error(error);
-        });
+<script src="https://cdnjs.cloudflare.com/ajax/libs/froala-editor/3.2.7/js/froala_editor.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/froala-editor/3.2.7/css/froala_editor.min.css" rel="stylesheet">
+<script>
+    new FroalaEditor('#editor');
 </script>

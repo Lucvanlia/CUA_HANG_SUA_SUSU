@@ -72,11 +72,116 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Case 2: Thêm sản phẩm
         case 'add_product':
-            //Lấy thông tin từ form
-            // Lấy thông tin từ form
-          
+            if (isset($_POST['Ten_sp'])) {
+                // Lấy dữ liệu từ form
+                $ten_sp = $_POST['Ten_sp'];
+                $mo_ta = $_POST['MoTa_sp'];
+                $id_dm = $_POST['id_dm'];
+                $id_xx = $_POST['id_xx'];
+                $id_ncc = $_POST['id_ncc'];
+                $Hinh_Nen = null; // Biến lưu ảnh đại diện
+
+                // Kiểm tra và xử lý ảnh đại diện
+                $target_dir = "../uploads/sanpham/";
+                if (!is_dir($target_dir)) {
+                    mkdir($target_dir, 0755, true); // Tạo thư mục nếu chưa có
+                }
+
+                if (isset($_FILES['Hinh_Nen']) && $_FILES['Hinh_Nen']['error'] === UPLOAD_ERR_OK) {
+                    $file_name = getRandomStringRandomInt() . basename($_FILES['Hinh_Nen']['name']);
+                    $target_file = $target_dir . $file_name;
+
+                    // Di chuyển file ảnh vào thư mục
+                    if (move_uploaded_file($_FILES['Hinh_Nen']['tmp_name'], $target_file)) {
+                        $Hinh_Nen = $file_name;
+                    } else {
+                        $response['message'] = 'Không thể tải ảnh đại diện lên.';
+                        echo json_encode($response);
+                        exit;
+                    }
+                }
+
+                // Thêm sản phẩm vào bảng `SanPham`
+                $sql = "INSERT INTO SanPham (Ten_sp, MoTa_sp, id_dm, id_xx, id_ncc, Hinh_Nen, HoatDong) 
+                        VALUES (?, ?, ?, ?, ?, ?, 1)"; // Hoạt động mặc định là 1 (hoạt động)
+                $stmt = mysqli_prepare($link, $sql);
+                mysqli_stmt_bind_param($stmt, "ssiiis", $ten_sp, $mo_ta, $id_dm, $id_xx, $id_ncc, $Hinh_Nen);
+
+                if (mysqli_stmt_execute($stmt)) {
+                    $id_sp = mysqli_insert_id($link); // Lấy ID của sản phẩm vừa thêm
+
+                    // Xử lý bảng `DonGia`
+                    if (isset($_POST['sizes']['GiaBan']) && is_array($_POST['sizes']['GiaBan'])) {
+                        // Tạo một mảng để lưu các kích thước đã xử lý
+                        $checkedSizes = [];
+
+                        foreach ($_POST['sizes']['GiaBan'] as $key => $giaBan) {
+                            $soLuong = $_POST['sizes']['SoLuong'][$key] ?? 0;
+                            $giaNhap = $_POST['sizes']['GiaNhap'][$key] ?? 0;
+                            $khuyenMai = $_POST['sizes']['KhuyenMai_Fast'][$key] ?? 0;
+                            $dv = $_POST['sizes']['child_dv'][$key] ?? 0;
+
+                            // Kiểm tra trùng lặp kích thước
+                            if (in_array($dv, $checkedSizes)) {
+                                // Trả về thông báo lỗi nếu bị trùng
+                                $response = [
+                                    'status' => 'error',
+                                    'message' => 'Kích thước  đã bị trùng. Vui lòng nhập các kích thước khác nhau.'
+                                ];
+                                echo json_encode($response);
+                                exit; // Kết thúc xử lý nếu phát hiện lỗi
+                            }
+
+                            // Nếu không trùng, thêm vào danh sách kiểm tra
+                            $checkedSizes[] = $dv;
+
+                            // Thêm thông tin vào bảng `DonGia`
+                            $sizeSql = "INSERT INTO DonGia (id_sp, GiaNhap, GiaBan, KhuyenMai_Fast, SoLuong, HoatDong, id_dv)
+                                        VALUES (?, ?, ?, ?, ?, 0, ?)";
+                            $sizeStmt = mysqli_prepare($link, $sizeSql);
+                            mysqli_stmt_bind_param($sizeStmt, "iddiii", $id_sp, $giaNhap, $giaBan, $khuyenMai, $soLuong, $dv);
+                            mysqli_stmt_execute($sizeStmt);
+                        }
+                    }
+
+                    // Xử lý ảnh chi tiết (nếu có)
+                    if (isset($_FILES['files']) && count($_FILES['files']['name']) > 0) {
+                        $images = [];
+                        foreach ($_FILES['files']['tmp_name'] as $key => $tmp_name) {
+                            if ($_FILES['files']['error'][$key] == 0) {
+                                $file_name = getRandomStringRandomInt() . basename($_FILES['files']['name'][$key]);
+                                $target_file = $target_dir . $file_name;
+                                if (move_uploaded_file($tmp_name, $target_file)) {
+                                    $images[] = $file_name; // Lưu tên file vào mảng
+                                }
+                            }
+                        }
+
+                        // Cập nhật ảnh chi tiết vào bảng `SanPham`
+                        if (!empty($images)) {
+                            $images_string = implode(',', $images); // Nối tên các ảnh lại thành chuỗi
+                            $update_sql = "UPDATE SanPham SET Hinh_ChiTiet = ? WHERE id_sp = ?";
+                            $update_stmt = mysqli_prepare($link, $update_sql);
+                            mysqli_stmt_bind_param($update_stmt, "si", $images_string, $id_sp);
+                            mysqli_stmt_execute($update_stmt);
+                        }
+                    }
+
+                    // Phản hồi thành công
+                    $response['status'] = 'success';
+                    $response['message'] = 'Sản phẩm đã được thêm thành công!';
+                } else {
+                    $response['message'] = 'Lỗi khi thêm sản phẩm vào cơ sở dữ liệu.';
+                }
+            } else {
+                $response['message'] = 'Dữ liệu không hợp lệ.';
+            }
+
+            // Trả về JSON
+            echo json_encode($response);
+            exit();
             break;
-     
+
             // Case load kích thước chính
         case 'load_main_sizes':
             $query = "SELECT id_dv, Ten_dv FROM DonVi WHERE parent_dv = 0 ";
@@ -107,72 +212,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 echo json_encode(['status' => 'error', 'message' => 'Không tìm thấy kích thước con']);
             }
             break;
-            case 'load':
-                // Số sản phẩm mỗi trang
-                $sanPhamMoiTrang = 5;
-            
-                // Trang hiện tại
-                $trangHienTai = isset($_POST['page']) ? (int)$_POST['page'] : 1;
-            
-                // Tính offset
-                $offset = ($trangHienTai - 1) * $sanPhamMoiTrang;
-            
-                // Lấy tổng số sản phẩm
-                $tongSanPhamQuery = "SELECT COUNT(*) AS total FROM SanPham";
-                $tongSanPhamResult = mysqli_query($link, $tongSanPhamQuery);
-                $tongSanPhamRow = mysqli_fetch_assoc($tongSanPhamResult);
-                $tongSanPham = (int)$tongSanPhamRow['total'];
-            
-                // Lấy danh sách sản phẩm cho trang hiện tại
-                $query = "SELECT *,Dongia.GiaBan  as GiaBan FROM SanPham INNER JOIN DonGia On sanpham.id_sp = dongia.id_sp ORDER BY sanpham.id_sp ASC LIMIT $sanPhamMoiTrang OFFSET $offset";
-                $result = mysqli_query($link, $query);
-            
-                $product = [];
-                if ($result && mysqli_num_rows($result) > 0) {
-                    while ($row = mysqli_fetch_assoc($result)) {
-                        $product[] = $row;
-                    }
+        case 'load':
+            // Số sản phẩm mỗi trang
+            $sanPhamMoiTrang = 5;
+
+            // Trang hiện tại
+            $trangHienTai = isset($_POST['page']) ? (int)$_POST['page'] : 1;
+
+            // Tính offset
+            $offset = ($trangHienTai - 1) * $sanPhamMoiTrang;
+
+            // Lấy tổng số sản phẩm
+            $tongSanPhamQuery = "SELECT COUNT(*) AS total FROM SanPham";
+            $tongSanPhamResult = mysqli_query($link, $tongSanPhamQuery);
+            $tongSanPhamRow = mysqli_fetch_assoc($tongSanPhamResult);
+            $tongSanPham = (int)$tongSanPhamRow['total'];
+
+            // Lấy danh sách sản phẩm cho trang hiện tại
+            $query = "SELECT *,Dongia.GiaBan  as GiaBan FROM SanPham INNER JOIN DonGia On sanpham.id_sp = dongia.id_sp ORDER BY sanpham.id_sp ASC LIMIT $sanPhamMoiTrang OFFSET $offset";
+            $result = mysqli_query($link, $query);
+
+            $product = [];
+            if ($result && mysqli_num_rows($result) > 0) {
+                while ($row = mysqli_fetch_assoc($result)) {
+                    $product[] = $row;
                 }
-            
-                // Gọi hàm hiển thị sản phẩm và phân trang
-                $htmlProduct = hienThiProduct($product, $tongSanPham, $trangHienTai, $sanPhamMoiTrang);
-            
-                // Trả về dữ liệu cho AJAX
-                echo json_encode([
-                    'productsHtml' => $htmlProduct,
-                    'paginationHtml' => createPagination($tongSanPham, $sanPhamMoiTrang, $trangHienTai)
-                ]);
-                break;
-            
-                break;
-                case 'toggle_status':
-                    $id_ncc = $_POST['id'] ?? 0;
-                    $newStatus = $_POST['status'] ?? 0;
-        
-                    if ($id_ncc > 0) {
-                        // Truy vấn cập nhật trạng thái
-                        $query = "UPDATE Sanpham SET HoatDong = ? WHERE id_sp = ?";
-                        $stmt = $link->prepare($query);
-                        $stmt->bind_param("ii", $newStatus, $id_ncc);
-        
-                        if ($stmt->execute()) {
-                            $response['status'] = 'success';
-                            $response['message'] = 'Cập nhật trạng thái thành công!';
-                        } else {
-                            $response['status'] = 'error';
-                            $response['message'] = 'Cập nhật trạng thái thất bại!';
-                        }
-                    } else {
-                        $response['status'] = 'error';
-                        $response['message'] = 'ID nhà cung cấp không hợp lệ!';
-                    }
-        
-                    echo json_encode($response);
-                    exit;
-        
-        
-                    echo $html;
-                    exit;
+            }
+
+            // Gọi hàm hiển thị sản phẩm và phân trang
+            $htmlProduct = hienThiProduct($product, $tongSanPham, $trangHienTai, $sanPhamMoiTrang);
+
+            // Trả về dữ liệu cho AJAX
+            echo json_encode([
+                'productsHtml' => $htmlProduct,
+                'paginationHtml' => createPagination($tongSanPham, $sanPhamMoiTrang, $trangHienTai)
+            ]);
+            break;
+
+            break;
+        case 'toggle_status':
+            $id_ncc = $_POST['id'] ?? 0;
+            $newStatus = $_POST['status'] ?? 0;
+
+            if ($id_ncc > 0) {
+                // Truy vấn cập nhật trạng thái
+                $query = "UPDATE Sanpham SET HoatDong = ? WHERE id_sp = ?";
+                $stmt = $link->prepare($query);
+                $stmt->bind_param("ii", $newStatus, $id_ncc);
+
+                if ($stmt->execute()) {
+                    $response['status'] = 'success';
+                    $response['message'] = 'Cập nhật trạng thái thành công!';
+                } else {
+                    $response['status'] = 'error';
+                    $response['message'] = 'Cập nhật trạng thái thất bại!';
+                }
+            } else {
+                $response['status'] = 'error';
+                $response['message'] = 'ID nhà cung cấp không hợp lệ!';
+            }
+
+            echo json_encode($response);
+            exit;
+
+
+            echo $html;
+            exit;
         default:
             echo json_encode(['status' => 'error', 'message' => 'Hành động không hợp lệ.']);
             break;
@@ -180,7 +285,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 } else {
     echo json_encode(['status' => 'error', 'message' => 'Phương thức không hợp lệ.']);
 }
-function hienThiProduct($danhSachProduct, $tongSanPham, $trangHienTai, $sanPhamMoiTrang) {
+function hienThiProduct($danhSachProduct, $tongSanPham, $trangHienTai, $sanPhamMoiTrang)
+{
     if (empty($danhSachProduct)) {
         return '<tr><td colspan="4" class="text-center">Không có sản phẩm nào!</td></tr>';
     }
@@ -208,7 +314,7 @@ function hienThiProduct($danhSachProduct, $tongSanPham, $trangHienTai, $sanPhamM
             : 'Không có hình'
         ) . '
                 </td>
-                <td>' . number_format($Giaban,0,3) . '</td>
+                <td>' . number_format($Giaban, 0, 3) . '</td>
                 <td class="text-center">
                     <button class="btn btn-sm btn-warning btn-edit" 
                         data-id="' . $id . '" 
@@ -241,7 +347,8 @@ function hienThiProduct($danhSachProduct, $tongSanPham, $trangHienTai, $sanPhamM
 
     return $html;
 }
-function createPagination($tongSanPham, $sanPhamMoiTrang, $trangHienTai) {
+function createPagination($tongSanPham, $sanPhamMoiTrang, $trangHienTai)
+{
     $tongTrang = ceil($tongSanPham / $sanPhamMoiTrang);
     $html = '<ul class="pagination justify-content-center">';
     for ($i = 1; $i <= $tongTrang; $i++) {
@@ -252,4 +359,14 @@ function createPagination($tongSanPham, $sanPhamMoiTrang, $trangHienTai) {
     }
     $html .= '</ul>';
     return $html;
+}
+function getRandomStringRandomInt($length = 50)
+{
+    $stringSpace = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $pieces = [];
+    $max = mb_strlen($stringSpace, '8bit') - 1;
+    for ($i = 0; $i < $length; ++$i) {
+        $pieces[] = $stringSpace[random_int(0, $max)];
+    }
+    return implode('', $pieces);
 }
