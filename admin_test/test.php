@@ -1,6 +1,6 @@
 <?php
 session_start();
-include "ketnoi/conndb.php";
+include "ketnoi/conndb.php";//hên xui 
 
 header('Content-Type: application/json'); // Đảm bảo phản hồi là JSON
 

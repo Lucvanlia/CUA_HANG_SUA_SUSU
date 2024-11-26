@@ -10,6 +10,7 @@
                     <form id="formNhaCungCap" enctype="multipart/form-data">
                         <div class="mb-3 form-group">
                             <label for="Ten_ncc" class="form-label">Tên nhà cung cấp</label>
+                            <input type="hidden" name="id_ncc" id="id_ncc" value="" class="form-control">
                             <input type="hidden" name="action" value="add" class="form-control">
                             <input type="text" class="form-control" id="Ten_ncc" name="Ten_ncc" placeholder="Nhập tên nhà cung cấp" class="form-control" required>
                         </div>
@@ -120,6 +121,103 @@
             }
         });
     });
+    $('#btnEdit').on('click', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData($('#formNhaCungCap')[0]);
+
+        $.ajax({
+            url: 'ajax-process/nhacungcap.php',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    Fancybox.show([{
+                        src: `
+                        <div style="padding: 20px; text-align: center;">
+                            <div style="font-size: 50px; color: green; margin-bottom: 15px;">
+                                <img src="img/verified.gif" width="50" height="50">
+                            </div>
+                            <h3>Thông báo</h3>
+                            <p>Trạng thái: <strong>${response.message}</strong></p>
+                            <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                        </div>`,
+                        type: "html",
+                    }]);
+                    $('#formNhaCungCap')[0].reset(); // Reset form
+                    $('#imagePreview').hide(); // Ẩn preview ảnh
+                    loadNhaCungCap(); // Tải lại danh sách
+                } else {
+                    Fancybox.show([{
+                        src: `
+                        <div style="padding: 20px; text-align: center;">
+                            <div style="font-size: 50px; color: red; margin-bottom: 15px;">
+                                <img src="img/delivery.gif" width="50" height="50">
+                            </div>
+                            <h3>Lỗi</h3>
+                            <p>${response.message}</p>
+                            <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                        </div>`,
+                        type: "html",
+                    }]);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('Đã có lỗi xảy ra!');
+                console.error(xhr.responseText);
+            }
+        });
+    });
+
+    $(document).on('click', '.btn-toggle-status', function() {
+        const $this = $(this); // Chỉ tham chiếu đến nút hiện tại
+        const id = $this.data('id'); // Lấy ID nhà cung cấp
+        const currentStatus = $this.data('status'); // Lấy trạng thái hiện tại
+
+        // Xác nhận hành động
+        const newStatus = currentStatus == 0 ? 1 : 0; // Đổi trạng thái
+
+        $.ajax({
+            url: 'ajax-process/nhacungcap.php',
+            type: 'POST',
+            data: {
+                action: 'toggle_status',
+                id: id,
+                status: newStatus
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    // Cập nhật lại trạng thái của nút hiện tại
+                    if (newStatus == 0) {
+                        // Kích hoạt lại
+                        $this
+                            .removeClass('btn-danger')
+                            .addClass('btn-success')
+                            .data('status', 0) // Cập nhật trạng thái mới vào data attribute
+                            .html('<i class="fas fa-check"></i> ON');
+                    } else {
+                        // Ngừng hoạt động
+                        $this
+                            .removeClass('btn-success')
+                            .addClass('btn-danger')
+                            .data('status', 1) // Cập nhật trạng thái mới vào data attribute
+                            .html('<i class="fas fa-times"></i> OFF');
+                    }
+                } else {
+                    alert('Cập nhật trạng thái thất bại!');
+                }
+            },
+            error: function() {
+                alert('Đã có lỗi xảy ra!');
+            }
+        });
+    });
+  
+
 
     // Sự kiện khi nhấn nút "Sửa" trong quản lý nhà cung cấp
     $(document).on('click', '.btn-edit', function() {

@@ -1,246 +1,471 @@
-<?php
-include('../../ketnoi/conndb.php');
-//=======================SQL===================
-$sql_xuatxu = "SELECT * FROM xuatxu";
-$sql_hang = "SELECT * FROM hang ";
-$sql_loai = "SELECT * FROM loai";
-//===================kq=====================
-$result_xuatxu = mysqli_query($link, $sql_xuatxu);
-$result_hang = mysqli_query($link, $sql_hang);
-$result_loai = mysqli_query($link, $sql_loai);
-//====================================================
+<!-- Fancybox JS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0.30/dist/fancybox.css" />
 
-?>
-<div class="container-fluid mt-5  pr-5 pl-5 col-md-12">
-
-    <form id="add-product" style="padding-right: -20px;">
-
-        <div class="form-group">
-            <label for="ten_sp">Tên Sản Phẩm:</label>
-            <input type="text" id="ten_sp" name="ten_sp" class="form-control" required>
-        </div>
-        <div class="form-group">
-            <label for="xuatxu">Xuất Xứ:</label>
-            <select id="xuatxu" name="xuatxu" class="form-control" required>
-                <?php while ($row = mysqli_fetch_assoc($result_xuatxu)) : ?>
-                    <option value="<?php echo $row['id_xuatxu']; ?>"><?php echo $row['tenxuatxu']; ?></option>
-                <?php endwhile; ?>
-            </select>
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0.30/dist/fancybox.umd.js"></script>
+<div class="container mt-4">
+    <h2>Thêm Sản Phẩm</h2>
+    <form id="formSanPham" enctype="multipart/form-data">
+        <!-- Tên sản phẩm -->
+        <input type="hidden" name="action" value="add_product">
+        <div class="mb-3">
+            <label class="form-label">Tên Sản Phẩm</label>
+            <input type="text" class="form-control" name="Ten_sp" placeholder="Nhập tên sản phẩm" required>
         </div>
 
-        <div class="form-group">
-            <label for="hang">Hãng:</label>
-            <select id="hang" name="hang" class="form-control" required>
-                <?php while ($row = mysqli_fetch_assoc($result_hang)) : ?>
-                    <option value="<?php echo $row['id_hang']; ?>"><?php echo $row['tenhang']; ?></option>
-                <?php endwhile; ?>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="loai">Loại:</label>
-            <select id="loai" name="loai" class="form-control" required>
-                <?php while ($row = mysqli_fetch_assoc($result_loai)) : ?>
-                    <option value="<?php echo $row['id_loai']; ?>"><?php echo $row['tenloai']; ?></option>
-                <?php endwhile; ?>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="soluong">Số Lượng:</label>
-            <input type="text" id="soluong" name="soluong" class="form-control" required>
-        </div>
-
-        <div class="form-group">
-            <label for="gia">Giá:</label>
-            <input type="text" id="gia" name="gia" class="form-control" required>
-        </div>
-
-        <div class="form-group">
-            <label for="mo_ta">Mô Tả:</label>
-            <textarea id="mo_ta" name="mo_ta" class="form-control"></textarea>
-        </div>
-
-        <div class="form-group">
-            <label for="image">Tải Lên Hình Ảnh:</label>
-            <input type="file" id="image" name="hinh_nen" class="form-control" accept="image/*" required>
-            <img id="preview-image" src="" class="img-fluid" alt="Preview" style="max-width: 100px; margin-top: 10px; display: none;" />
-        </div>
-
-        <div class="row py-2">
-            <div class="col-lg-12 col-md-6 col-sm-12">
-                <textarea id="rating-description" class="form-control " placeholder="Nhập mô tả đánh giá"></textarea>
+        <!-- Danh mục, Xuất xứ, Nhà cung cấp -->
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Danh Mục</label>
+                <select class="form-select" name="id_dm" required>
+                    <option value="">Chọn danh mục</option>
+                    <!-- Dữ liệu danh mục sẽ được load động -->
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Xuất Xứ</label>
+                <select class="form-select" name="id_xx" required>
+                    <option value="">Chọn xuất xứ</option>
+                    <!-- Dữ liệu xuất xứ sẽ được load động -->
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Nhà Cung Cấp</label>
+                <select class="form-select" name="id_ncc" required>
+                    <option value="">Chọn nhà cung cấp</option>
+                    <!-- Dữ liệu nhà cung cấp sẽ được load động -->
+                </select>
             </div>
         </div>
-        <div class="row py-2">
-            <div class="col-lg-6 col-md-6 col-sm-12">
-                <button type="button" class="site-btn btn btn-success btn-sm" id="submit-product">Gửi đánh giá</button>
+
+        <!-- Kích thước size và giá -->
+        <div class="mb-3 mt-4" id="sizeContainer">
+            <label class="form-label">Kích Thước (Size)</label>
+            <div id="sizeRows"></div>
+            <button type="button" class="btn btn-secondary mt-2" id="addSizeButton">Thêm Dòng Size</button>
+        </div>
+        <!-- Mô tả sản phẩm -->
+        <div class=" col-lg-12">
+            <div class="main-container">
+                <textarea id="editor" name="MoTa_sp">
+                <p>Hello from CKEditor 5!</p>
+            </textarea>
             </div>
         </div>
+
+
+        <!-- Hình nền -->
+        <div class="mb-3">
+            <label class="form-label">Hình Nền</label>
+            <input type="file" class="form-control" name="Hinh_Nen" accept="image/*" id="imageUpload" required>
+            <img id="imagePreview" src="#" alt="Hình nền" style="display: none; margin-top: 10px; max-width: 200px;">
+        </div>
+
+        <!-- <div class="row py-2">
+            <div class="col-lg-12 col-md-12">
+                <form action="upload_images.php" class="dropzone" id="dropzoneArea"></form>
+            </div>
+        </div> -->
+        <!-- Submit -->
+        <button type="submit" class="btn btn-primary" id="btnAdd"> Thêm Sản Phẩm</button>
     </form>
-    <!-- Dropzone cho phần tải lên nhiều ảnh -->
     <div class="row py-2">
+        <div class="col-lg-12 col-md-12">
+            <form action="upload_images.php" class="dropzone" id="dropzoneArea"><input type="hidden" name="action" value="add_product"></form>
+        </div>
+    </div>
+    <!-- Dropzone cho phần tải lên nhiều ảnh -->
+    <!-- <div class="row py-2">
         <div class="col-lg-12 col-md-12">
             <form action="upload_images.php" class="dropzone" id="dropzoneArea"></form>
         </div>
-    </div>
+    </div> -->
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
-<link
-  rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css"
-/>
+<!-- A friendly reminder to run on a server, remove this during the integration. -->
+
 <script>
     Dropzone.autoDiscover = false;
+    // Khi form thêm sản phẩm được submit
+    if (Dropzone.instances.length > 0) Dropzone.instances.forEach(dz => dz.destroy());
 
-    $(document).ready(function() {
-        $(document).ready(function() {
-            $('#gia').on('input', function(e) {
-                // Lấy giá trị hiện tại của ô input và loại bỏ dấu chấm
-                let value = $(this).val().replace(/\./g, "");
+    const myDropzone = new Dropzone("#dropzoneArea", {
+        url: "ajax-process/sanpham.php",
+        data:{action : 'add_product'},
+        paramName: "hinh_chi_tiet[]", // Đặt tên cho tệp tải lên là "hinh_chi_tiet"
+        autoProcessQueue: false,
+        uploadMultiple: true,
+        maxFiles: 5,
+        acceptedFiles: "image/*",
+        addRemoveLinks: true,
+        parallelUploads: 10,
+        init: function() {
+            const dropzone = this;
 
-                // Kiểm tra nếu không phải là số hoặc là số âm, xóa ký tự không hợp lệ
-                if (!/^\d+$/.test(value)) {
-                    value = value.replace(/\D/g, ""); // Loại bỏ các ký tự không phải số
-                }
-
-                // Định dạng lại với dấu chấm hàng nghìn
-                value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-                // Gán lại giá trị đã định dạng vào ô input
-                $(this).val(value);
+            // Sự kiện khi thêm file
+            dropzone.on("addedfile", (file) => {
+                console.log("File added: ", file);
             });
 
-            // Ngăn người dùng nhập ký tự không phải số và dấu âm
-            $('#gia').on('keypress', function(e) {
-                // Ngăn nhập ký tự không phải số
-                if (!/[0-9]/.test(String.fromCharCode(e.which))) {
-                    e.preventDefault();
-                }
-            });
-        });
+            // Bắt sự kiện click nút gửi
+            $('#btnAdd').on('click', function(e) {
+        e.preventDefault();
+        // Lấy dữ liệu từ form và chuẩn bị gửi bằng FormData
+        const formData = new FormData($('#formSanPham')[0]);
 
+        console.log(formData); // Kiểm tra dữ liệu gửi đi
 
-        $(document).ready(function() {
-            $('#soluong').on('input', function(e) {
-                // Lấy giá trị hiện tại của ô input và loại bỏ dấu chấm
-                let value = $(this).val().replace(/\./g, "");
-
-                // Kiểm tra nếu không phải là số hoặc là số âm, xóa ký tự không hợp lệ
-                if (!/^\d+$/.test(value)) {
-                    value = value.replace(/\D/g, ""); // Loại bỏ các ký tự không phải số
-                }
-
-                // Định dạng lại với dấu chấm hàng nghìn
-                value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-                // Gán lại giá trị đã định dạng vào ô input
-                $(this).val(value);
-            });
-
-            // Ngăn người dùng nhập ký tự không phải số và dấu âm
-            $('#gia').on('keypress', function(e) {
-                // Ngăn nhập ký tự không phải số
-                if (!/[0-9]/.test(String.fromCharCode(e.which))) {
-                    e.preventDefault();
-                }
-            });
-        });
-
-        // Hiển thị ảnh đại diện trước khi tải lên
-        $('#image').change(function(event) {
-            const input = event.target;
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => $('#preview-image').attr('src', e.target.result).show();
-                reader.readAsDataURL(input.files[0]);
-            }
-        });
-
-        // Khởi tạo Dropzone
-        if (Dropzone.instances.length > 0) Dropzone.instances.forEach(dz => dz.destroy());
-
-        const myDropzone = new Dropzone("#dropzoneArea", {
-            url: "comment-process.php",
-            paramName: "hinh_chi_tiet[]", // Đặt tên cho tệp tải lên là "hinh_chi_tiet"
-            autoProcessQueue: false,
-            uploadMultiple: true,
-            maxFiles: 10,
-            acceptedFiles: "image/*",
-            addRemoveLinks: true,
-            parallelUploads: 10,
-            init: function() {
-                const dropzone = this;
-
-                // Sự kiện khi thêm file
-                dropzone.on("addedfile", (file) => {
-                    console.log("File added: ", file);
-                });
-
-                // Bắt sự kiện click nút gửi
-                $('#submit-product').on('click', function(e) {
-                    e.preventDefault();
-
-                    // Sử dụng FormData để lấy tất cả dữ liệu trong form
-                    const formData = new FormData(document.getElementById("add-product"));
-
-                    // Thêm các tệp từ Dropzone vào FormData
-                    dropzone.getAcceptedFiles().forEach(file => {
-                        formData.append("hinh_chi_tiet[]", file); // Đảm bảo thêm [] để nhận nhiều tệp
+        $.ajax({
+            url: 'ajax-process/sanpham.php',
+            type: 'POST',
+            data: formData,
+            processData: false, // Không xử lý dữ liệu
+            contentType: false, // Không thiết lập content type
+            dataType: 'json',
+            success: function(response) {
+                console.log(response);
+                if (response.status === 'success') {
+                    Fancybox.show([{
+                        src: `
+                    <div style="padding: 20px; text-align: center;">
+                        <div style="font-size: 50px; color: green; margin-bottom: 15px;">
+                            <img src="img/verified.gif" width="50" height="50">
+                        </div>
+                        <h3>Thông báo</h3>
+                        <p>Trạng thái: <strong>Bạn đã thêm sản phẩm thành công</strong></p>
+                        <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                    </div>`,
+                        type: "html",
+                    }], {
+                        afterShow: (instance, current) => {
+                            console.info("Fancybox hiện đã mở!");
+                        },
                     });
-
-                    // Gửi dữ liệu đến server
-                    fetch('comment-process.php', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                // alert('Đánh giá đã được gửi thành công!');
-                                Fancybox.show([{
-                                    src: `<div style="padding: 20px; text-align: center;">
-                                    <h3>Thông báo</h3>
-                                    <p><strong>Sản phẩm đã thêm thành công</strong></p>
-                                    <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
-                                  </div>`,
-                                    type: "html",
-                                }], );
-                                document.getElementById("add-product").reset();
-                                dropzone.removeAllFiles(); // Xóa tất cả các tệp trong Dropzone
-                                document.getElementById("preview-image").style.display = "none";
-                            } else {
-                                alert('Lỗi: ' + data.error);
-                            }
-                        })
-                        .catch(error => alert('Lỗi server: ' + error));
-                });
-
-                // Xử lý thành công tải lên nhiều tệp
-                dropzone.on("successmultiple", (files, response) => {
-                    const data = JSON.parse(response);
-                    if (data.success) {
-                        // alert('Ảnh và đánh giá đã được lưu thành công!');
-                        Fancybox.show([{
-                            src: `<div style="padding: 20px; text-align: center;">
-                                    <h3>Thông báo</h3>
-                                    <p><strong>Ảnh và đánh giá đã được lưu thành công!</strong></p>
-                                    <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
-                                  </div>`,
-                            type: "html",
-                        }], );
-                        document.getElementById("add-product").reset();
-                        dropzone.removeAllFiles(); // Xóa tất cả các tệp trong Dropzone
-                        document.getElementById("preview-image").style.display = "none";
-                    } else {
-                        alert('Lỗi khi tải ảnh: ' + data.error);
-                    }
-                });
-
-                dropzone.on("errormultiple", () => alert('Lỗi khi tải ảnh!'));
+                    $('#formDanhMuc')[0].reset(); // Reset form
+                    $('#imagePreview').hide(); // Ẩn preview ảnh
+                    loadDanhMuc(); // Tải lại danh mục
+                    loadParentDanhMuc(); // Tải lại danh mục cha
+                } else {
+                    Fancybox.show([{
+                        src: `
+                    <div style="padding: 20px; text-align: center;">
+                        <div style="font-size: 50px; color: green; margin-bottom: 15px;">
+                            <img class="img-thumbnail" src="img/delivery.gif" width="50" height="50">
+                        </div>
+                        <h3>Thông báo</h3>
+                        <p>Trạng thái: <strong>${response.message}</strong></p>
+                        <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                    </div>`,
+                        type: "html",
+                    }], {
+                        afterShow: (instance, current) => {
+                            console.info("Fancybox hiện đã mở!");
+                        },
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error(xhr.responseText);
+                alert('Đã có lỗi xảy ra!');
             }
         });
     });
+
+            // Xử lý thành công tải lên nhiều tệp
+            dropzone.on("successmultiple", (files, response) => {
+                const data = JSON.parse(response);
+                if (data.success) {
+                    // alert('Ảnh và đánh giá đã được lưu thành công!');
+                    Fancybox.show([{
+                        src: `<div style="padding: 20px; text-align: center;">
+                            <h3>Thông báo</h3>
+                            <p><strong>Ảnh và đánh giá đã được lưu thành công!</strong></p>
+                            <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                          </div>`,
+                        type: "html",
+                    }], );
+                    document.getElementById("add-product").reset();
+                    dropzone.removeAllFiles(); // Xóa tất cả các tệp trong Dropzone
+                    document.getElementById("preview-image").style.display = "none";
+                } else {
+                    alert('Lỗi khi tải ảnh: ' + data.error);
+                }
+            });
+
+            dropzone.on("errormultiple", () => alert('Lỗi khi tải ảnh!'));
+        }
+    });
+    Dropzone.autoDiscover = false;
+    // Gửi form qua AJAX
+    $(document).ready(function() {
+        // Load dữ liệu danh mục, xuất xứ, nhà cung cấp
+        function loadSelectData() {
+            $.ajax({
+                url: "ajax-process/sanpham.php",
+                type: "POST",
+                data: {
+                    action: "load_select_data"
+                },
+                dataType: "json",
+                success: function(data) {
+                    if (data.status === "success") {
+                        $('select[name="id_dm"]').html(data.danhmuc);
+                        $('select[name="id_xx"]').html(data.xuatxu);
+                        $('select[name="id_ncc"]').html(data.nhacungcap);
+                    }
+                },
+            });
+        }
+        loadSelectData();
+
+        // Thêm dòng size
+        $("#addSizeButton").on("click", function() {
+            const newRow = `
+            <div class="row g-3 align-items-center mb-2 size-row">
+                <div class="col-md-4">
+                    <select class="form-select parent-dv" name="sizes[parent_dv][]" required>
+                        <option value="">Chọn kích thước chính</option>
+                        <!-- Dữ liệu kích thước chính được load từ server -->
+                        <option value="1">Size Chính 1</option>
+                        <option value="2">Size Chính 2</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select child-dv" name="sizes[child_dv][]" disabled required>
+                        <option value="">Chọn kích thước con</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input type="text" class="form-control gia-ban" name="sizes[GiaBan][]" placeholder="Giá bán" required>
+                </div>
+                <div class="col-md-2">
+                    <input type="text" class="form-control SoLuong" name="sizes[SoLuong][]" placeholder="Số lượng" required>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-danger btn-sm removeSizeButton">Xóa</button>
+                </div>
+            </div>`;
+
+            // Thêm dòng mới vào container
+            $("#sizeRows").append(newRow);
+
+            // Áp dụng định dạng số cho giá bán
+            $(".gia-ban").on('input', function() {
+                let value = this.value.replace(/\D/g, ''); // Chỉ giữ lại số
+                value = Number(value).toLocaleString(); // Định dạng số với dấu phân tách nghìn
+                this.value = value;
+            });
+
+            // Sau khi thêm dòng mới, bạn có thể tải các kích thước chính (nếu có)
+            loadMainSizes(); // Nếu cần gọi thêm chức năng load các kích thước chính
+        });
+
+        // Áp dụng sự kiện xóa cho mỗi dòng
+        $(document).on('click', '.removeSizeButton', function() {
+            $(this).closest('.size-row').remove();
+        });
+
+        // Chặn người dùng nhập chữ vào trường gia-ban (chỉ cho phép số và ký tự hợp lệ)
+        $(document).on('keydown', '.gia-ban', function(event) {
+            // Chỉ cho phép nhập các phím: số, dấu phân cách hàng nghìn, và dấu xóa (backspace)
+            const validKeys = [
+                8, // Backspace
+                9, // Tab
+                13, // Enter
+                27, // Escape
+                37, // Arrow left
+                39, // Arrow right
+                46, // Delete
+                48, 49, 50, 51, 52, 53, 54, 55, 56, 57, // Số từ 0 đến 9
+                190, // Dấu phân cách thập phân
+                188 // Dấu phân cách nghìn (dấu phẩy)
+            ];
+
+            if (!validKeys.includes(event.keyCode)) {
+                event.preventDefault(); // Chặn các phím không hợp lệ
+            }
+        });
+
+        // Xóa dòng size
+        $(document).on("click", ".removeSizeButton", function() {
+            $(this).closest(".size-row").remove();
+        });
+
+        // Xử lý hình nền preview
+        $("#imageUpload").change(function() {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $("#imagePreview").attr("src", e.target.result).show();
+            };
+            reader.readAsDataURL(this.files[0]);
+        });
+
+        // Dropzone cho hình chi tiết
+        const myDropzone = new Dropzone("#dropzone", {
+            url: "ajax-process/sanpham.php?action=upload_images",
+            maxFilesize: 2, // MB
+            acceptedFiles: "image/*",
+            addRemoveLinks: true,
+        });
+
+        // Gửi form
+        $("#formSanPham").on("submit", function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            // Append Dropzone files vào formData
+            myDropzone.files.forEach((file) => {
+                formData.append("Hinh_ChiTiet[]", file);
+            });
+
+            $.ajax({
+                url: "ajax-process/sanpham.php",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: "json",
+                success: function(response) {
+                    if (response.status === "success") {
+                        Fancybox.show([{
+                            src: `
+                        <div style="padding: 20px; text-align: center;">
+                            <div style="font-size: 50px; color: green; margin-bottom: 15px;">
+                                <img src="img/verified.gif" width="50" height="50">
+                            </div>
+                            <h3>Thông báo</h3>
+                            <p>Trạng thái: <strong>${response.message}</strong></p>
+                            <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                        </div>`,
+                            type: "html",
+                        }]);
+                        $("#formSanPham")[0].reset();
+                        $("#imagePreview").hide();
+                        myDropzone.removeAllFiles();
+                    } else {
+                        Fancybox.show([{
+                            src: `
+                        <div style="padding: 20px; text-align: center;">
+                            <div style="font-size: 50px; color: red; margin-bottom: 15px;">
+                                <img src="img/delivery.gif" width="50" height="50">
+                            </div>
+                            <h3>Lỗi</h3>
+                            <p>${response.message}</p>
+                            <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                        </div>`,
+                            type: "html",
+                        }]);
+                    }
+                },
+            });
+        });
+    }); // Tải danh sách kích thước chính
+    function loadMainSizes() {
+        $.ajax({
+            url: 'ajax-process/sanpham.php', // URL xử lý
+            type: 'POST',
+            data: {
+                action: 'load_main_sizes'
+            }, // Gửi dữ liệu để lấy kích thước chính
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    // Lặp qua từng select kích thước chính và thêm các options
+                    $(".parent-dv").each(function() {
+                        const $parentSelect = $(this);
+                        $parentSelect.empty(); // Xóa các options cũ
+                        $parentSelect.append('<option value="">Chọn kích thước chính</option>'); // Thêm option mặc định
+                        response.data.forEach(function(size) {
+                            $parentSelect.append(`<option value="${size.id_dv}">${size.Ten_dv}</option>`);
+                        });
+                    });
+                } else {
+                    alert('Không thể tải danh sách kích thước chính');
+                }
+            },
+            error: function() {
+                alert('Lỗi khi tải dữ liệu kích thước chính');
+            }
+        });
+    }
+
+    // Khi chọn kích thước chính, tải các kích thước con
+    $(document).on('change', '.parent-dv', function() {
+        const parentId = $(this).val(); // Lấy ID của kích thước chính
+        const $sizeRow = $(this).closest('.size-row'); // Tìm dòng kích thước
+
+        if (parentId) {
+            $.ajax({
+                url: 'ajax-process/sanpham.php', // URL xử lý
+                type: 'POST',
+                data: {
+                    action: 'load_sizes',
+                    parent_id: parentId
+                }, // Gửi ID kích thước chính để lấy con
+                dataType: 'json',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        const $childSelect = $sizeRow.find('.child-dv');
+                        $childSelect.empty(); // Xóa các option cũ
+                        $childSelect.append('<option value="">Chọn kích thước con</option>'); // Option mặc định
+
+                        response.data.forEach(function(size) {
+                            $childSelect.append(`<option value="${size.id_dv}">${size.Ten_dv}</option>`);
+                        });
+
+                        $childSelect.prop('disabled', false); // Bật dropdown kích thước con
+                    } else {
+                        alert('Không thể tải kích thước con');
+                    }
+                },
+                error: function() {
+                    alert('Lỗi khi tải dữ liệu kích thước con');
+                }
+            });
+        } else {
+            // Nếu không có kích thước chính, disable kích thước con
+            $sizeRow.find('.child-dv').empty().prop('disabled', true).append('<option value="">Chọn kích thước con</option>');
+        }
+    });
+</script>
+<!-- Thêm jQuery nếu chưa có -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Thêm thư viện maskMoney -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-maskmoney/3.1.1/jquery.maskMoney.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dropzone/dist/dropzone.css">
+<script src="https://cdn.jsdelivr.net/npm/dropzone/dist/dropzone.min.js"></script>
+<link rel="stylesheet" href="https://cdn.ckeditor.com/ckeditor5/43.3.1/ckeditor5.css">
+<script type="importmap">
+    {
+                "imports": {
+                    "ckeditor5": "https://cdn.ckeditor.com/ckeditor5/43.3.1/ckeditor5.js",
+                    "ckeditor5/": "https://cdn.ckeditor.com/ckeditor5/43.3.1/"
+                }
+            }
+        </script>
+<script type="module">
+    import {
+        ClassicEditor,
+        Essentials,
+        Paragraph,
+        Bold,
+        Italic,
+        Image,
+        Font
+    } from 'ckeditor5';
+
+    ClassicEditor
+        .create(document.querySelector('#editor'), {
+            plugins: [Essentials, Paragraph, Bold, Italic, Font],
+            toolbar: [
+                'undo', 'redo', '|', 'bold', 'italic', '|',
+                'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor'
+            ]
+        })
+        .then(editor => {
+            window.editor = editor;
+        })
+        .catch(error => {
+            console.error(error);
+        });
 </script>

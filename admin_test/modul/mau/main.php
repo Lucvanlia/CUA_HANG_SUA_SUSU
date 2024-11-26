@@ -32,7 +32,6 @@
 
     //============Trang xuat xư =================
     elseif ($tam == 'quanlyxuatxu' && $tam1 == 'them') {
-        include "modul/qlyxuatxu/them.php";
         include "modul/qlyxuatxu/lietke.php";
     } elseif ($tam == 'quanlyxuatxu' && $tam1 == 'sua') {
         include "modul/qlyxuatxu/sua.php";
@@ -84,7 +83,6 @@
 
     //============ kt quanlytintuc =================
     elseif ($tam == 'quanlytintuc' && $tam1 == 'them') {
-        include "modul/qlytintuc/them.php";
         include "modul/qlytintuc/lietke.php";
     } elseif ($tam == 'quanlysanpham' && $tam1 == 'sua') {
         include "modul/qlytintuc/sua.php";

@@ -83,9 +83,17 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
                                 <select class="form-select" id="parent_dm" name="parent_dm">
                                     <option value="0">Không có danh mục cha</option>
                                     <!-- Hiển thị danh mục cha -->
-                                    <?php foreach ($danhMuc as $dm): ?>
-                                        <option value="<?= $dm['id_dm'] ?>"><?= $dm['Ten_dm'] ?></option>
-                                    <?php endforeach; ?>
+                                     <?php $sql = "SELECT * FROM Danhmuc where parent_dm = 0 ";
+                                            $query = mysqli_query($link,$sql);
+                                            while($row = mysqli_fetch_array($query))
+                                            {
+                                                ?>
+                                                 <option value="<?= $row['id_dm'] ?>"><?= $row['Ten_dm'] ?></option>
+
+                                                <?php
+                                            }
+                                     ?>
+                                  
                                 </select>
                             </div>
                             <div class="mb-3">
