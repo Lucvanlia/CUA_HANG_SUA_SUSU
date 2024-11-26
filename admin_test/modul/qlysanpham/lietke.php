@@ -15,37 +15,36 @@
                 <th class="text-center">Tên sản phẩm</th>
                 <th class="text-center">Hình</th>
                 <th class="text-center">Giá</th>
+                <th class="text-center">Trạng thái</th>
             </tr>
         </thead>
         <tbody id="product-list">
             <!-- Dữ liệu sản phẩm sẽ được tải ở đây -->
         </tbody>
     </table>
-    <nav>
-        <ul class="pagination justify-content-center" id="pagination">
-            <!-- Phân trang sẽ được tải ở đây -->
-        </ul>
+    <nav id="pagination">
+        <!-- Nút phân trang sẽ được tải ở đây -->
     </nav>
 </div>
 <script>
-    function LoadSanPham() {
-        $.ajax({
-            url: 'ajax-process/sanpham.php',
-            type: 'POST', // Phương thức POST vì dùng `action`
-            data: {
-                action: 'load'
-            },
-            success: function(response) {
-                // Gắn nội dung trả về vào bảng
-                $('#product-list').html(response);
-            },
-            error: function(xhr, status, error) {
-                console.error("Lỗi khi tải nhà cung cấp:", error);
-                $('#product-list').html("<p>Đã có lỗi xảy ra khi tải nhà cung cấp.</p>");
-            }
-        });
-    }
-    LoadSanPham()
+    // function LoadSanPham() {
+    //     $.ajax({
+    //         url: 'ajax-process/sanpham.php',
+    //         type: 'POST', // Phương thức POST vì dùng `action`
+    //         data: {
+    //             action: 'load'
+    //         },
+    //         success: function(response) {
+    //             // Gắn nội dung trả về vào bảng
+    //             $('#product-list').html(response);
+    //         },
+    //         error: function(xhr, status, error) {
+    //             console.error("Lỗi khi tải nhà cung cấp:", error);
+    //             $('#product-list').html("<p>Đã có lỗi xảy ra khi tải nhà cung cấp.</p>");
+    //         }
+    //     });
+    // }
+    // LoadSanPham()
     $(document).on('click', '.btn-toggle-status', function() {
         const $this = $(this); // Chỉ tham chiếu đến nút hiện tại
         const id = $this.data('id'); // Lấy ID nhà cung cấp
@@ -89,5 +88,34 @@
                 alert('Đã có lỗi xảy ra!');
             }
         });
+    });
+
+    function loadProducts(page = 1) {
+        $.ajax({
+            url: 'ajax-process/sanpham.php',
+            type: 'POST',
+            data: {
+                page: page,
+                action:'load'
+            },
+            dataType: 'json',
+            success: function(response) {
+                $('#product-list').html(response.productsHtml);
+                $('#pagination').html(response.paginationHtml);
+            },
+            error: function() {
+                alert('Lỗi khi tải sản phẩm!');
+            }
+        });
+    }
+
+    // Lần đầu tiên tải sản phẩm
+    loadProducts();
+
+    // Sự kiện khi bấm nút phân trang
+    $(document).on('click', '.pagination a', function(e) {
+        e.preventDefault();
+        const page = $(this).data('page');
+        loadProducts(page);
     });
 </script>

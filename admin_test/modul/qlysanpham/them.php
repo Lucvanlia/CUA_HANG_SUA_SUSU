@@ -68,11 +68,17 @@
         <!-- Submit -->
         <button type="submit" class="btn btn-primary" id="btnAdd"> Thêm Sản Phẩm</button>
     </form>
+
     <div class="row py-2">
         <div class="col-lg-12 col-md-12">
-            <form action="upload_images.php" class="dropzone" id="dropzoneArea"><input type="hidden" name="action" value="add_product"></form>
+            <form class="dropzone" id="dropzoneArea">
+                <div class="dz-default dz-message">
+                    <span>Kéo và thả tệp vào đây hoặc nhấp để tải lên</span>
+                </div>
+            </form>
         </div>
     </div>
+
     <!-- Dropzone cho phần tải lên nhiều ảnh -->
     <!-- <div class="row py-2">
         <div class="col-lg-12 col-md-12">
@@ -84,117 +90,7 @@
 <!-- A friendly reminder to run on a server, remove this during the integration. -->
 
 <script>
-    Dropzone.autoDiscover = false;
-    // Khi form thêm sản phẩm được submit
-    if (Dropzone.instances.length > 0) Dropzone.instances.forEach(dz => dz.destroy());
-
-    const myDropzone = new Dropzone("#dropzoneArea", {
-        url: "ajax-process/sanpham.php",
-        data:{action : 'add_product'},
-        paramName: "hinh_chi_tiet[]", // Đặt tên cho tệp tải lên là "hinh_chi_tiet"
-        autoProcessQueue: false,
-        uploadMultiple: true,
-        maxFiles: 5,
-        acceptedFiles: "image/*",
-        addRemoveLinks: true,
-        parallelUploads: 10,
-        init: function() {
-            const dropzone = this;
-
-            // Sự kiện khi thêm file
-            dropzone.on("addedfile", (file) => {
-                console.log("File added: ", file);
-            });
-
-            // Bắt sự kiện click nút gửi
-            $('#btnAdd').on('click', function(e) {
-        e.preventDefault();
-        // Lấy dữ liệu từ form và chuẩn bị gửi bằng FormData
-        const formData = new FormData($('#formSanPham')[0]);
-
-        console.log(formData); // Kiểm tra dữ liệu gửi đi
-
-        $.ajax({
-            url: 'ajax-process/sanpham.php',
-            type: 'POST',
-            data: formData,
-            processData: false, // Không xử lý dữ liệu
-            contentType: false, // Không thiết lập content type
-            dataType: 'json',
-            success: function(response) {
-                console.log(response);
-                if (response.status === 'success') {
-                    Fancybox.show([{
-                        src: `
-                    <div style="padding: 20px; text-align: center;">
-                        <div style="font-size: 50px; color: green; margin-bottom: 15px;">
-                            <img src="img/verified.gif" width="50" height="50">
-                        </div>
-                        <h3>Thông báo</h3>
-                        <p>Trạng thái: <strong>Bạn đã thêm sản phẩm thành công</strong></p>
-                        <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
-                    </div>`,
-                        type: "html",
-                    }], {
-                        afterShow: (instance, current) => {
-                            console.info("Fancybox hiện đã mở!");
-                        },
-                    });
-                    $('#formDanhMuc')[0].reset(); // Reset form
-                    $('#imagePreview').hide(); // Ẩn preview ảnh
-                    loadDanhMuc(); // Tải lại danh mục
-                    loadParentDanhMuc(); // Tải lại danh mục cha
-                } else {
-                    Fancybox.show([{
-                        src: `
-                    <div style="padding: 20px; text-align: center;">
-                        <div style="font-size: 50px; color: green; margin-bottom: 15px;">
-                            <img class="img-thumbnail" src="img/delivery.gif" width="50" height="50">
-                        </div>
-                        <h3>Thông báo</h3>
-                        <p>Trạng thái: <strong>${response.message}</strong></p>
-                        <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
-                    </div>`,
-                        type: "html",
-                    }], {
-                        afterShow: (instance, current) => {
-                            console.info("Fancybox hiện đã mở!");
-                        },
-                    });
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error(xhr.responseText);
-                alert('Đã có lỗi xảy ra!');
-            }
-        });
-    });
-
-            // Xử lý thành công tải lên nhiều tệp
-            dropzone.on("successmultiple", (files, response) => {
-                const data = JSON.parse(response);
-                if (data.success) {
-                    // alert('Ảnh và đánh giá đã được lưu thành công!');
-                    Fancybox.show([{
-                        src: `<div style="padding: 20px; text-align: center;">
-                            <h3>Thông báo</h3>
-                            <p><strong>Ảnh và đánh giá đã được lưu thành công!</strong></p>
-                            <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
-                          </div>`,
-                        type: "html",
-                    }], );
-                    document.getElementById("add-product").reset();
-                    dropzone.removeAllFiles(); // Xóa tất cả các tệp trong Dropzone
-                    document.getElementById("preview-image").style.display = "none";
-                } else {
-                    alert('Lỗi khi tải ảnh: ' + data.error);
-                }
-            });
-
-            dropzone.on("errormultiple", () => alert('Lỗi khi tải ảnh!'));
-        }
-    });
-    Dropzone.autoDiscover = false;
+   
     // Gửi form qua AJAX
     $(document).ready(function() {
         // Load dữ liệu danh mục, xuất xứ, nhà cung cấp

@@ -10,72 +10,48 @@ error_reporting(E_ALL);
 
 $response = array('success' => false); // Khởi tạo phản hồi mặc định
 
-if (isset($_POST['ten_sp'])) {
-    $created_at = time();
-    $name = $_POST['ten_sp'];
-    $loai = $_POST['loai'];
-    $xuatxu = $_POST['xuatxu'];
-    $hang = $_POST['hang'];
-    $soluong = $_POST['soluong'];
-    $gia = $_POST['gia'];
-    $hinh_nen = null; // Khởi tạo biến cho ảnh đại diện
-    // Sử dụng câu lệnh chuẩn bị để kiểm tra tên sản phẩm
-    $sql_check = "SELECT 1 FROM dmsp WHERE Tensp = ?";
-    $stmt = mysqli_prepare($link, $sql_check);
+if (isset($_POST['Ten_sp'])) {
+    $ten_sp = $_POST['Ten_sp'];
+    $mo_ta = $_POST['MoTa_sp'];
+    $id_dm = $_POST['id_dm'];
+    $id_xx = $_POST['id_xx'];
+    $id_ncc = $_POST['id_ncc'];
 
-    // Kiểm tra xem câu lệnh đã chuẩn bị thành công chưa
-    if ($stmt) {
-        // Gán giá trị cho tham số ? trong câu truy vấn
-        mysqli_stmt_bind_param($stmt, "s", $name);
-
-        // Thực thi câu truy vấn
-        mysqli_stmt_execute($stmt);
-
-        // Lấy kết quả truy vấn
-        mysqli_stmt_store_result($stmt);
-
-        // Kiểm tra xem có bản ghi nào trả về không
-        if (mysqli_stmt_num_rows($stmt) > 0) {
-            $response['error'] = "Tên sản phẩm đã tồn tại";
-            echo json_encode($response);
-            exit();
+    // Xử lý ảnh đại diện (Hinh_Nen)
+    $Hinh_Nen = null;
+    if (isset($_FILES['Hinh_Nen']) && $_FILES['Hinh_Nen']['error'] == 0) {
+        $target_dir = "modul/uploads/";
+        if (!is_dir($target_dir)) {
+            mkdir($target_dir, 0755, true);
         }
-
-        // Đóng câu lệnh
-        mysqli_stmt_close($stmt);
-    } else {
-        $response['error'] = "Lỗi truy vấn kiểm tra tên sản phẩm";
-        echo json_encode($response);
-        exit();
-    }
-    // Đảm bảo đường dẫn tồn tại
-    $target_dir = "modul/uploads/";
-    if (!is_dir($target_dir)) {
-        mkdir($target_dir, 0755, true);
-    }
-
-    // Xử lý ảnh đại diện
-    if (isset($_FILES['hinh_nen']) && $_FILES['hinh_nen']['error'] == 0) {
-        $avatar_name = $_FILES['hinh_nen']['name'];
+        $avatar_name = $_FILES['Hinh_Nen']['name'];
         $target_avatar = $target_dir . basename($avatar_name);
-        if (move_uploaded_file($_FILES['hinh_nen']['tmp_name'], $target_avatar)) {
-            $hinh_nen = $avatar_name;
-        } else {
-            $response['error'] = "Không thể tải lên ảnh đại diện.";
-            echo json_encode($response);
-            exit();
+        if (move_uploaded_file($_FILES['Hinh_Nen']['tmp_name'], $target_avatar)) {
+            $Hinh_Nen = $avatar_name;
         }
     }
 
-    // Thực hiện lưu sản phẩm với ảnh đại diện
-    $sql = "INSERT INTO dmsp (Tensp, id_xuatxu, id_hang, id_loai, hinh,gia,SoLuong) 
-            VALUES ('$name', '$xuatxu', '$hang', '$loai', '$hinh_nen','$gia','$soluong')";
+    // Thêm sản phẩm vào CSDL
+    $sql = "INSERT INTO SanPham (Ten_sp, MoTa_sp, id_dm, id_xx, id_ncc, Hinh_Nen) 
+            VALUES ('$ten_sp', '$mo_ta', '$id_dm', '$id_xx', '$id_ncc', '$Hinh_Nen')";
 
     if (mysqli_query($link, $sql)) {
-        $id_sp = mysqli_insert_id($link); // Lấy ID của sản phẩm
+        $id_sp = mysqli_insert_id($link); // ID sản phẩm vừa thêm
 
-        // Xử lý upload các ảnh chi tiết từ Dropzone
+        // Xử lý các size sản phẩm
+        if (isset($_POST['sizes']['GiaBan']) && is_array($_POST['sizes']['GiaBan'])) {
+            foreach ($_POST['sizes']['GiaBan'] as $key => $giaBan) {
+                $soLuong = $_POST['sizes']['SoLuong'][$key] ?? 0;
+                $giaNhap = $_POST['sizes']['GiaNhap'][$key] ?? 0;
+                $khuyenMai = $_POST['sizes']['KhuyenMai_Fast'][$key] ?? 0;
+
+                $sizeSql = "INSERT INTO DonGia (id_sp, GiaNhap, GiaBan, KhuyenMai_Fast, SoLuong) 
+                            VALUES ('$id_sp', '$giaNhap', '$giaBan', '$khuyenMai', '$soLuong')";
+                mysqli_query($link, $sizeSql);
+            }
+        }
         if (isset($_FILES['hinh_chi_tiet'])) {
+            $target_dir = "modul/uploads/";
             $images = [];
             foreach ($_FILES['hinh_chi_tiet']['tmp_name'] as $key => $tmp_name) {
                 if ($_FILES['hinh_chi_tiet']['error'][$key] == 0) {
@@ -84,30 +60,24 @@ if (isset($_POST['ten_sp'])) {
                     $target_file = $target_dir . basename($file_name);
 
                     if (move_uploaded_file($file_tmp, $target_file)) {
-                        $images[] = $file_name; // Thêm tên file vào mảng
-                    } else {
-                        $response['error'] = "Không thể tải ảnh lên cho file $file_name.";
-                        echo json_encode($response);
-                        exit();
+                        $images[] = $file_name;
                     }
                 }
             }
 
-            // Cập nhật các ảnh chi tiết vào cơ sở dữ liệu
+            // Cập nhật các ảnh chi tiết vào CSDL
             if (!empty($images)) {
                 $images_string = implode(',', $images);
-                $update_sql = "UPDATE dmsp SET Hinh_ChiTiet = '$images_string' WHERE id_sp = '$id_sp'";
-                if (!mysqli_query($link, $update_sql)) {
-                    $response['error'] = "Truy vấn chi tiết không thể thực hiện.";
-                    echo json_encode($response);
-                    exit();
-                }
+                $update_sql = "UPDATE Sanpham SET Hinh_ChiTiet = '$images_string' WHERE id_sp = '$id_sp'";
+                mysqli_query($link, $update_sql);
             }
         }
+        echo json_encode(['success' => true]);
 
-        $response['success'] = true; // Thành công
-    } else {
-        $response['error'] = 'Lỗi cơ sở dữ liệu: ' . mysqli_error($link);
+    } 
+    else {
+        echo json_encode(['success' => false, 'error' => mysqli_error($link)]);
+        exit();
     }
 } else {
     $response['error'] = 'Thiếu dữ liệu cần thiết.';

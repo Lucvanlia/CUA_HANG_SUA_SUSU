@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         case 'add': // Thêm danh mục
             $Ten_dm = trim($_POST['Ten_dm'] ?? ''); // Loại bỏ khoảng trắng
             $parent_dm = $_POST['parent_dm'] ?? 0;
-        
+
             // Kiểm tra dữ liệu đầu vào
             if (empty($Ten_dm)) {
                 $response['message'] = 'Tên danh mục không được để trống!';
@@ -16,27 +16,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 echo json_encode($response);
                 exit();
             }
-        
+
             // Kiểm tra tên danh mục có bị trùng không
             $queryCheck = "SELECT id_dm FROM DanhMuc WHERE Ten_dm = ?";
             $stmt = $link->prepare($queryCheck);
             $stmt->bind_param("s", $Ten_dm);
             $stmt->execute();
             $stmt->store_result();
-        
+
             if ($stmt->num_rows > 0) {
                 $response['message'] = 'Tên danh mục đã tồn tại!';
                 $response['status'] = 'error';
                 echo json_encode($response);
                 exit();
             }
-        
+
             // Kiểm tra nếu có file hình ảnh
             $Hinh_dm = null;
             if (isset($_FILES['Hinh_dm']) && $_FILES['Hinh_dm']['error'] == UPLOAD_ERR_OK) {
                 $target_dir = "../uploads/"; // Thư mục lưu trữ ảnh
                 $target_file = $target_dir . basename($_FILES['Hinh_dm']['name']);
-                
+
                 // Kiểm tra và di chuyển file ảnh
                 if (move_uploaded_file($_FILES['Hinh_dm']['tmp_name'], $target_file)) {
                     $Hinh_dm = $_FILES['Hinh_dm']['name']; // Lưu tên file ảnh vào cơ sở dữ liệu
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $stmt = $link->prepare($query);
                 $stmt->bind_param("si", $Ten_dm, $parent_dm);
             }
-        
+
             if ($stmt->execute()) {
                 $response['message'] = 'Thêm danh mục thành công';
                 $response['status'] = 'success';
@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $response['status'] = 'error';
             }
             break;
-        
+
         case 'edit':
             $id_dm = $_POST['id_dm'] ?? 0;
             $Ten_dm = trim($_POST['Ten_dm'] ?? '');
@@ -234,6 +234,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
             echo $html;
             exit;
+        case 'toggle_status':
+            $id_xx = $_POST['id'] ?? 0;
+            $newStatus = $_POST['status'] ?? 0;
+
+            if ($id_xx > 0) {
+                // Truy vấn cập nhật trạng thái
+                $query = "UPDATE DanhMuc SET Hoatdong = ? WHERE id_dm = ?";
+                $stmt = $link->prepare($query);
+                $stmt->bind_param("ii", $newStatus, $id_xx);
+
+                if ($stmt->execute()) {
+                    $response['status'] = 'success';
+                    $response['message'] = 'Cập nhật trạng thái thành công!';
+                } else {
+                    $response['status'] = 'error';
+                    $response['message'] = 'Cập nhật trạng thái thất bại!';
+                }
+            } else {
+                $response['status'] = 'error';
+                $response['message'] = 'ID xuất xứ không hợp lệ!';
+            }
+
+            echo json_encode($response);
+            exit;
+
+
+            echo $html;
+            exit;
         default:
             $response['message'] = 'Hành động không hợp lệ!';
             break;
@@ -266,7 +294,13 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
 {
     $html = '';
     foreach ($danhMuc as $dm) {
+        $status = $dm['Hoatdong']; // Lấy trạng thái hoạt động của xuất xứ
+        $statusText = ($status == 1) ? 'OFF' : 'ON';
+        $statusClass = ($status == 1) ? 'btn-danger' : 'btn-success';
+        $iconClass = ($status == 1) ? 'fa-times' : 'fa-check';
+
         if ($dm['parent_dm'] == $parent) {
+
             $prefix = str_repeat('|--->', $level);
             $icon = $level === 0 ? '<i class="fas fa-folder-open text-primary"></i>' : '';
             $html .= '<tr>';
@@ -278,10 +312,12 @@ function hienThiDanhMuc($danhMuc, $parent = 0, $level = 0)
                             data-parent="' . $dm['parent_dm'] . '">
                             <i class="fas fa-edit"></i>
                         </button>';
-            $html .= '  <button class="btn btn-sm btn-danger btn-delete" 
-                            data-id="' . $dm['id_dm'] . '">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>';
+            $html .= '  
+                    <button class="btn btn-sm ' . $statusClass . ' btn-toggle-status" 
+                        data-id="' . $dm['id_dm'] . '" 
+                        data-status="' . $status . '">
+                        <i class="fas ' . $iconClass . '"></i> ' . $statusText . '
+                    </button>';
             $html .= '</td>';
             $html .= '</tr>';
             $html .= hienThiDanhMuc($danhMuc, $dm['id_dm'], $level + 1); // Đệ quy

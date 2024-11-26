@@ -74,81 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'add_product':
             //Lấy thông tin từ form
             // Lấy thông tin từ form
-            $ten_sp = $_POST['Ten_sp'];
-            $mo_ta = $_POST['MoTa_sp'];
-            $id_dm = $_POST['id_dm'];
-            $id_xx = $_POST['id_xx'];
-            $id_ncc = $_POST['id_ncc'];
-
-            // Xử lý hình nền
-            if (isset($_FILES['Hinh_Nen']) && $_FILES['Hinh_Nen']['error'] === UPLOAD_ERR_OK) {
-                $hinh_nen = $_FILES['Hinh_Nen']['name'];
-                move_uploaded_file($_FILES['Hinh_Nen']['tmp_name'], 'uploads/' . $hinh_nen); // Lưu file vào thư mục uploads
-            } else {
-                $hinh_nen = ''; // Nếu không có hình nền
-            }
-
-            // Thêm sản phẩm vào cơ sở dữ liệu
-            $sql = "INSERT INTO SanPham (Ten_sp, MoTa_sp, id_dm, id_xx, id_ncc, Hinh_Nen) 
-                    VALUES ('$ten_sp', '$mo_ta', '$id_dm', '$id_xx', '$id_ncc', '$hinh_nen')";
-
-            // Giả sử bạn đã kết nối tới cơ sở dữ liệu và thực thi câu SQL
-            if (mysqli_query($link, $sql)) {
-                $id_sp = mysqli_insert_id($link); // Lấy id của sản phẩm vừa thêm
-                $id_sp = mysqli_insert_id($link); // Lấy ID của sản phẩm
-
-                // Xử lý upload các ảnh chi tiết từ Dropzone
-                if (isset($_FILES['hinh_chi_tiet'])) {
-                    $images = [];
-                    foreach ($_FILES['hinh_chi_tiet']['tmp_name'] as $key => $tmp_name) {
-                        if ($_FILES['hinh_chi_tiet']['error'][$key] == 0) {
-                            $file_name = $_FILES['hinh_chi_tiet']['name'][$key];
-                            $file_tmp = $_FILES['hinh_chi_tiet']['tmp_name'][$key];
-                            $target_file = $target_dir . basename($file_name);
-
-                            if (move_uploaded_file($file_tmp, $target_file)) {
-                                $images[] = $file_name; // Thêm tên file vào mảng
-                            } else {
-                                echo json_encode(['status' => 'error', 'message' => 'File ảnh']);
-                                echo json_encode($response);
-                                exit();
-                            }
-                        }
-                    }
-
-                    // Cập nhật các ảnh chi tiết vào cơ sở dữ liệu
-                    if (!empty($images)) {
-                        $images_string = implode(',', $images);
-                        $update_sql = "UPDATE Sanpham SET Hinh_ChiTiet = '$images_string' WHERE id_sp = '$id_sp'";
-                        if (!mysqli_query($link, $update_sql)) {
-                            echo json_encode(['status' => 'error', 'message' => 'lỗi truy vấn thêm ảnh']);
-                            echo json_encode($response);
-                            exit();
-                        }
-                    }
-                }
-                else{
-                    echo json_encode(['status' => 'error', 'message' => 'lỗi truy vấn thêm ảnh']);
-                    exit();
-                }
-                // Thêm đơn giá vào bảng DonGia
-                if (isset($_POST['sizes']['Size'])) {
-                    foreach ($_POST['sizes']['Size'] as $key => $size) {
-                        $giaNhap = $_POST['sizes']['GiaNhap'][$key];
-                        $giaBan = $_POST['sizes']['GiaBan'][$key];
-                        $khuyenMai = $_POST['sizes']['KhuyenMai_Fast'][$key];
-
-                        // Chèn dữ liệu vào bảng DonGia
-                        $sizeSql = "INSERT INTO DonGia (id_sp, GiaNhap, GiaBan, KhuyenMai_Fast) 
-                                    VALUES ('$id_sp', '$giaNhap', '$giaBan', '$khuyenMai')";
-                        mysqli_query($link, $sizeSql);
-                    }
-                }
-                echo json_encode(['status' => 'success', 'message' => 'Sản phẩm đã được thêm thành công!']);
-            } else {
-                echo json_encode(['status' => 'error', 'message' => 'Lỗi khi thêm sản phẩm']);
-            }
-            exit;
+          
             break;
      
             // Case load kích thước chính
@@ -182,19 +108,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             break;
             case 'load':
-                // Lấy danh sách nhà cung cấp
-                $query = "SELECT * FROM SanPham  ORDER BY id_sp ASC";
+                // Số sản phẩm mỗi trang
+                $sanPhamMoiTrang = 5;
+            
+                // Trang hiện tại
+                $trangHienTai = isset($_POST['page']) ? (int)$_POST['page'] : 1;
+            
+                // Tính offset
+                $offset = ($trangHienTai - 1) * $sanPhamMoiTrang;
+            
+                // Lấy tổng số sản phẩm
+                $tongSanPhamQuery = "SELECT COUNT(*) AS total FROM SanPham";
+                $tongSanPhamResult = mysqli_query($link, $tongSanPhamQuery);
+                $tongSanPhamRow = mysqli_fetch_assoc($tongSanPhamResult);
+                $tongSanPham = (int)$tongSanPhamRow['total'];
+            
+                // Lấy danh sách sản phẩm cho trang hiện tại
+                $query = "SELECT *,Dongia.GiaBan  as GiaBan FROM SanPham INNER JOIN DonGia On sanpham.id_sp = dongia.id_sp ORDER BY sanpham.id_sp ASC LIMIT $sanPhamMoiTrang OFFSET $offset";
                 $result = mysqli_query($link, $query);
-    
+            
                 $product = [];
                 if ($result && mysqli_num_rows($result) > 0) {
                     while ($row = mysqli_fetch_assoc($result)) {
                         $product[] = $row;
                     }
                 }
-                // Trả về HTML cho AJAX
-                echo hienThiProduct($product);
-                exit; // Ngăn không cho mã khác chạy tiếp
+            
+                // Gọi hàm hiển thị sản phẩm và phân trang
+                $htmlProduct = hienThiProduct($product, $tongSanPham, $trangHienTai, $sanPhamMoiTrang);
+            
+                // Trả về dữ liệu cho AJAX
+                echo json_encode([
+                    'productsHtml' => $htmlProduct,
+                    'paginationHtml' => createPagination($tongSanPham, $sanPhamMoiTrang, $trangHienTai)
+                ]);
+                break;
+            
                 break;
                 case 'toggle_status':
                     $id_ncc = $_POST['id'] ?? 0;
@@ -231,19 +180,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 } else {
     echo json_encode(['status' => 'error', 'message' => 'Phương thức không hợp lệ.']);
 }
-function hienThiProduct($danhSachProduct)
-{
+function hienThiProduct($danhSachProduct, $tongSanPham, $trangHienTai, $sanPhamMoiTrang) {
     if (empty($danhSachProduct)) {
-        return '<tr><td colspan="4" class="text-center">Không có nhà cung cấp nào!</td></tr>';
+        return '<tr><td colspan="4" class="text-center">Không có sản phẩm nào!</td></tr>';
     }
 
     $html = '';
-    $stt = 1 ; 
+    $stt = ($trangHienTai - 1) * $sanPhamMoiTrang + 1;
+
     foreach ($danhSachProduct as $ncc) {
         $id = htmlspecialchars($ncc['id_sp']);
         $name = htmlspecialchars($ncc['Ten_sp']);
         $hinh = htmlspecialchars($ncc['Hinh_Nen']);
-        $status = $ncc['HoatDong']; // Lấy trạng thái hoạt động của nhà cung cấp
+        $Giaban = htmlspecialchars($ncc['GiaBan']);
+        $status = $ncc['HoatDong']; // Trạng thái hoạt động
         $statusText = ($status == 1) ? 'OFF' : 'ON';
         $statusClass = ($status == 1) ? 'btn-danger' : 'btn-success';
         $iconClass = ($status == 1) ? 'fa-times' : 'fa-check';
@@ -251,13 +201,14 @@ function hienThiProduct($danhSachProduct)
         $html .= '
             <tr>
                 <td>' . $stt . '</td>
-                <td>' . $name . '</td>
+                <td><span>' . $name . '</span></td>
                 <td>
                     ' . (!empty($hinh)
             ? '<img src="uploads/sanpham/' . $hinh . '" style="width: 100px; height: 100px; object-fit: cover;" />'
             : 'Không có hình'
         ) . '
                 </td>
+                <td>' . number_format($Giaban,0,3) . '</td>
                 <td class="text-center">
                     <button class="btn btn-sm btn-warning btn-edit" 
                         data-id="' . $id . '" 
@@ -265,7 +216,6 @@ function hienThiProduct($danhSachProduct)
                         data-hinh="' . $hinh . '">
                         <i class="fas fa-edit"></i>
                     </button>
-              
                     <button class="btn btn-sm ' . $statusClass . ' btn-toggle-status" 
                         data-id="' . $id . '" 
                         data-status="' . $status . '">
@@ -273,7 +223,33 @@ function hienThiProduct($danhSachProduct)
                     </button>
                 </td>
             </tr>';
-            $stt++;
+        $stt++;
     }
+
+    // Tính toán số trang
+    $tongTrang = ceil($tongSanPham / $sanPhamMoiTrang);
+
+    // Thêm phân trang
+    $html .= '<nav><ul class="pagination justify-content-center">';
+    for ($i = 1; $i <= $tongTrang; $i++) {
+        $activeClass = ($i == $trangHienTai) ? 'active' : '';
+        $html .= '<li class="page-item ' . $activeClass . '">
+                    <a class="page-link" href="?page=' . $i . '">' . $i . '</a>
+                  </li>';
+    }
+    $html .= '</ul></nav>';
+
+    return $html;
+}
+function createPagination($tongSanPham, $sanPhamMoiTrang, $trangHienTai) {
+    $tongTrang = ceil($tongSanPham / $sanPhamMoiTrang);
+    $html = '<ul class="pagination justify-content-center">';
+    for ($i = 1; $i <= $tongTrang; $i++) {
+        $activeClass = ($i == $trangHienTai) ? 'active' : '';
+        $html .= '<li class="page-item ' . $activeClass . '">
+                    <a class="page-link" href="#" data-page="' . $i . '">' . $i . '</a>
+                  </li>';
+    }
+    $html .= '</ul>';
     return $html;
 }

@@ -42,7 +42,6 @@ ob_start(); // Bắt đầu bộ đệm
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
     <script src="js/ketnoi.js"></script>
 </body>
-
 </html>
 <?php
 // Mã PHP của bạn ở đây
