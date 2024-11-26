@@ -451,7 +451,7 @@
                         </div>
                         <h3>Thông báo</h3>
                         <p>Trạng thái: <strong>Bạn đã thêm sản phẩm thành công</strong></p>
-                        <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                        <button onclick="location.reload();" class="btn btn-primary mt-2">Đóng</button>
                     </div>`,
                         type: "html",
                     }]);
