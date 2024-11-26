@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         case 'add': // Thêm Loại tin tức
             $Ten_ltt = trim($_POST['Ten_ltt'] ?? ''); // Loại bỏ khoảng trắng
             $parent_ltt = $_POST['parent_ltt'] ?? 0;
-        
+
             // Kiểm tra dữ liệu đầu vào
             if (empty($Ten_ltt)) {
                 $response['message'] = 'Tên Loại tin tức không được để trống!';
@@ -16,27 +16,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 echo json_encode($response);
                 exit();
             }
-        
+
             // Kiểm tra tên Loại tin tức có bị trùng không
             $queryCheck = "SELECT id_ltt FROM Loaitintuc WHERE Ten_ltt = ?";
             $stmt = $link->prepare($queryCheck);
             $stmt->bind_param("s", $Ten_ltt);
             $stmt->execute();
             $stmt->store_result();
-        
+
             if ($stmt->num_rows > 0) {
                 $response['message'] = 'Tên Loại tin tức đã tồn tại!';
                 $response['status'] = 'error';
                 echo json_encode($response);
                 exit();
             }
-        
+
             // Kiểm tra nếu có file hình ảnh
             $Hinh_ltt = null;
             if (isset($_FILES['Hinh_ltt']) && $_FILES['Hinh_ltt']['error'] == UPLOAD_ERR_OK) {
                 $target_dir = "../uploads/"; // Thư mục lưu trữ ảnh
                 $target_file = $target_dir . basename($_FILES['Hinh_ltt']['name']);
-                
+
                 // Kiểm tra và di chuyển file ảnh
                 if (move_uploaded_file($_FILES['Hinh_ltt']['tmp_name'], $target_file)) {
                     $Hinh_ltt = $_FILES['Hinh_ltt']['name']; // Lưu tên file ảnh vào cơ sở dữ liệu
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $stmt = $link->prepare($query);
                 $stmt->bind_param("si", $Ten_ltt, $parent_ltt);
             }
-        
+
             if ($stmt->execute()) {
                 $response['message'] = 'Thêm Loại tin tức thành công';
                 $response['status'] = 'success';
@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $response['status'] = 'error';
             }
             break;
-        
+
         case 'edit':
             $id_ltt = $_POST['id_ltt'] ?? 0;
             $Ten_ltt = trim($_POST['Ten_ltt'] ?? '');
@@ -153,6 +153,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 echo json_encode($response);
                 exit; // Dừng thực thi mã
             }
+            case 'toggle_status':
+                $id_xx = $_POST['id'] ?? 0;
+                $newStatus = $_POST['status'] ?? 0;
+    
+                if ($id_xx > 0) {
+                    // Truy vấn cập nhật trạng thái
+                    $query = "UPDATE Loaitintuc SET Hoatdong = ? WHERE id_ltt = ?";
+                    $stmt = $link->prepare($query);
+                    $stmt->bind_param("ii", $newStatus, $id_xx);
+    
+                    if ($stmt->execute()) {
+                        $response['status'] = 'success';
+                        $response['message'] = 'Cập nhật trạng thái thành công!';
+                    } else {
+                        $response['status'] = 'error';
+                        $response['message'] = 'Cập nhật trạng thái thất bại!';
+                    }
+                } else {
+                    $response['status'] = 'error';
+                    $response['message'] = 'ID xuất xứ không hợp lệ!';
+                }
+    
+                echo json_encode($response);
+                exit;
 
             // Hàm đệ quy lấy Loại tin tức con
             function getChildCategories($link, $parentId)
@@ -267,6 +291,10 @@ function hienThiLoaitintuc($Loaitintuc, $parent = 0, $level = 0)
     $html = '';
     foreach ($Loaitintuc as $dm) {
         if ($dm['parent_ltt'] == $parent) {
+            $status = $dm['Hoatdong']; // Lấy trạng thái hoạt động của xuất xứ
+            $statusText = ($status == 1) ? 'OFF' : 'ON';
+            $statusClass = ($status == 1) ? 'btn-danger' : 'btn-success';
+            $iconClass = ($status == 1) ? 'fa-times' : 'fa-check';
             $prefix = str_repeat('|--->', $level);
             $icon = $level === 0 ? '<i class="fas fa-folder-open text-primary"></i>' : '';
             $html .= '<tr>';
@@ -278,10 +306,11 @@ function hienThiLoaitintuc($Loaitintuc, $parent = 0, $level = 0)
                             data-parent="' . $dm['parent_ltt'] . '">
                             <i class="fas fa-edit"></i>
                         </button>';
-            $html .= '  <button class="btn btn-sm btn-danger btn-delete" 
-                            data-id="' . $dm['id_ltt'] . '">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>';
+            $html .= '     <button class="btn btn-sm ' . $statusClass . ' btn-toggle-status" 
+                        data-id="' . $dm['id_dv'] . '" 
+                        data-status="' . $status . '">
+                        <i class="fas ' . $iconClass . '"></i> ' . $statusText . '
+                    </button>';
             $html .= '</td>';
             $html .= '</tr>';
             $html .= hienThiLoaitintuc($Loaitintuc, $dm['id_ltt'], $level + 1); // Đệ quy
