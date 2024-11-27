@@ -1,135 +1,67 @@
-<?php
-$sql2 = "SELECT * FROM hoadon";
-$result = mysqli_query($link, $sql2);
-$count = mysqli_num_rows($result);
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Danh sách hóa đơn</title>
-
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-
-    <!-- Fancybox CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0.30/dist/fancybox.css" />
-</head>
-<body>
-
-<div class="mb-4" id="DesignationTable" style="background-color:#fff">
-    <div class="card-header py-3" style="background-color:#fff">
-        <h6 class="m-0 font-weight-bold text-primary">Danh sách hóa đơn</h6>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <div class="py-4 d-flex flex-row bd-highlight mb-3">
-                <form method="post" action="index.php?action=timkiem&query=timkiem_loai" class="py-2">
-                    <label for="">Tìm kiếm hóa đơn</label>
-                    <input type="text" id="search_loai" name="search" class="col-form-label" placeholder="Tìm mã hóa đơn" autocomplete="off" value="<?php if (isset($_GET['search'])) {
-                                                                                                                                                        echo $_GET['search'];
-                                                                                                                                                    } ?>">
-                    <input type="submit" value="Tìm" class="btn btn-primary" name="tim">
-                </form>
-            </div>
-            <form action="modul/qlyloai/xly.php" method="post">
-                <td>Số lượng hóa đơn: <?php echo $count ?></td>
-                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th>STT</th>
-                            <th>Mã hóa đơn</th>
-                            <th>Ngày mua</th>
-                            <th>Tổng tiền</th>
-                            <th>Trạng thái</th>
-                            <th>Chỉnh sửa</th>
-                            <th>Xóa</th>
-                        </tr>
-                    </thead>
-                    <tbody id="searchkq">
-                        <?php
-                        $stt  = 0;
-                        while ($row = mysqli_fetch_array($result)) {
-                            $stt++;
-                        ?>
-                            <tr>
-                                <td><?php echo $stt ?></td>
-                                <td><?php echo $row['id_hd']; ?></td>
-                                <td><?php echo date("d/m/Y H:i:s", strtotime($row['NgayLapHD'])); ?></td>
-                                <td><?php echo number_format($row['tongtien'], 0, ',', '.'); ?> VND</td>
-                                <td>
-                                    <select class="form-select order-status-select" data-order-id="<?php echo $row['id_hd']; ?>">
-                                        <option value="0" <?= $row['TrangThai'] == '0' ? 'selected' : '' ?>>Đã giao hàng</option>
-                                        <option value="1" <?= $row['TrangThai'] == '1' ? 'selected' : '' ?>>Chờ xác nhận</option>
-                                        <option value="2" <?= $row['TrangThai'] == '2' ? 'selected' : '' ?>>Đã xác nhận</option>
-                                        <option value="3" <?= $row['TrangThai'] == '3' ? 'selected' : '' ?>>Đang giao hàng</option>
-                                        <option value="4" <?= $row['TrangThai'] == '4' ? 'selected' : '' ?>>Đã nhận hàng</option>
-                                        <option value="5" <?= $row['TrangThai'] == '5' ? 'selected' : '' ?>>Yêu cầu hủy đơn hàng</option>
-                                        <option value="6" <?= $row['TrangThai'] == '6' ? 'selected' : '' ?>>Đơn hàng đã được hủy</option>
-                                    </select>
-                                </td>
-                                <td><a href="?action=quanlyloai&query=sua&id=<?php echo $row['id_hd']; ?>"><i class="fa-solid fa-pen-to-square"></i></a></td>
-                                <td><input name="ckcl[]" type="checkbox" value="<?php echo $row['id_hd']; ?>" class="Organization_Desg_Check_margin"></td>
-                            </tr>
-                        <?php } ?>
-                    </tbody>
-                </table>
-            </form>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            <h3>Danh sách hóa đơn</h3>
+        </div>
+        <div class="col-md-6 text-end">
+            <input type="text" id="search-input" class="form-control" placeholder="Tìm kiếm hóa đơn..." />
         </div>
     </div>
+    <div class="table-responsive mt-3">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Khách hàng</th>
+                    <th>Email</th>
+                    <th>Trạng thái</th>
+                    <th>Thanh toán</th>
+                    <th>Ngày tạo</th>
+                </tr>
+            </thead>
+            <tbody id="hoadon-list"></tbody>
+        </table>
+    </div>
+    <nav id="pagination" class="mt-3"></nav>
 </div>
-
-<!-- jQuery -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-
-<!-- Bootstrap JS -->
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-
-<!-- Fancybox JS -->
-<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0.30/dist/fancybox.umd.js"></script>
-
 <script>
-    // Import Fancybox từ module fancyapps
-    const { Fancybox } = window;
-    $(document).ready(function() {
-        $('.order-status-select').on('change', function() {
-            var orderId = $(this).data('order-id');
-            var status = $(this).val();
-            var statusText = $(this).find("option:selected").text(); // Lấy tên trạng thái
-
-            $.ajax({
-                url: 'ajax-process.php', // File PHP để xử lý cập nhật
-                type: 'POST',
-                data: {
-                    id_hd: orderId,
-                    trang_thai: status
-                },
-                success: function(response) {
-                    if (response == 'success') {
-                        Fancybox.show([{
-                            src: `<div style="padding: 20px; text-align: center;">
-                                    <h3>Thông báo</h3>
-                                    <p>Mã đơn hàng: <strong>${orderId}</strong></p>
-                                    <p>Trạng thái đã cập nhật: <strong>${statusText}</strong></p>
-                                    <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
-                                  </div>`,
-                            type: "html",
-                        }], {
-                            afterShow: (instance, current) => {
-                                console.info("Fancybox hiện đã mở!");
-                            },
-                        });
-                    } else {
-                        alert('Có lỗi xảy ra khi cập nhật trạng thái.');
-                    }
+    $(document).ready(function () {
+    const fetchData = (searchQuery = "", page = 1) => {
+        $.ajax({
+            url: 'ajax-process/hoadon.php',
+            type: 'POST',
+            data: { action: 'fetch', search: searchQuery, page: page },
+            dataType: 'json',
+            success: function (response) {
+                if (response.status === 'success') {
+                    $('#hoadon-list').html(response.data.html);
+                    $('#pagination').html(response.data.pagination);
+                } else {
+                    $('#hoadon-list').html('<p class="text-danger">Không có dữ liệu!</p>');
                 }
-            });
+            },
+            error: function () {
+                alert('Đã có lỗi xảy ra!');
+            }
         });
+    };
+
+    // Gọi dữ liệu lần đầu tiên
+    fetchData();
+
+    // Tìm kiếm
+    $('#search-input').on('keyup', function () {
+        const searchQuery = $(this).val();
+        fetchData(searchQuery);
     });
+
+    // Phân trang
+    $(document).on('click', '.page-link', function (e) {
+        e.preventDefault();
+        const page = $(this).data('page');
+        const searchQuery = $('#search-input').val();
+        fetchData(searchQuery, page);
+    });
+});
+
 </script>
-</body>
-</html>

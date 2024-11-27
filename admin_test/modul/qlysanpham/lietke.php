@@ -26,7 +26,6 @@
         <!-- Nút phân trang sẽ được tải ở đây -->
     </nav>
 </div>
-<!-- Modal chỉnh sửa sản phẩm -->
 <div id="editProductModal" class="modal fade" tabindex="-1">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
@@ -48,21 +47,18 @@
                             <label class="form-label">Danh Mục</label>
                             <select class="form-select" name="id_dm" id="editDanhMuc" required>
                                 <option value="">Chọn danh mục</option>
-                                <!-- Dữ liệu danh mục -->
                             </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Xuất Xứ</label>
                             <select class="form-select" name="id_xx" id="editXuatXu" required>
                                 <option value="">Chọn xuất xứ</option>
-                                <!-- Dữ liệu xuất xứ -->
                             </select>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Nhà Cung Cấp</label>
                             <select class="form-select" name="id_ncc" id="editNhaCungCap" required>
                                 <option value="">Chọn nhà cung cấp</option>
-                                <!-- Dữ liệu nhà cung cấp -->
                             </select>
                         </div>
                     </div>
@@ -82,7 +78,6 @@
                                 </tr>
                             </thead>
                             <tbody id="sizeEditRows">
-                                <!-- Hàng được thêm động -->
                             </tbody>
                         </table>
                         <button type="button" class="btn btn-secondary" id="addSizeEditButton">Thêm Dòng Size</button>
@@ -98,9 +93,7 @@
                     <!-- Hình chi tiết -->
                     <div class="mb-3">
                         <label class="form-label">Hình Chi Tiết</label>
-                        <div id="editImagePreviewContainer" class="mb-2">
-                            <!-- Hiển thị danh sách hình ảnh chi tiết với nút xóa -->
-                        </div>
+                        <div id="editImagePreviewContainer" class="mb-2"></div>
                         <input type="file" id="editFiles" name="files[]" multiple accept="image/*">
                         <p id="editFileCount">Đã chọn 0 tệp</p>
                     </div>
@@ -121,92 +114,11 @@
 </div>
 
 
+
 <script>
     // Sự kiện click nút chỉnh sửa
   // Khi click vào nút chỉnh sửa sản phẩm
-$(document).on('click', '.btn-edit', function () {
-    const id_sp = $(this).data('id');
-
-    // Gửi AJAX lấy thông tin chi tiết sản phẩm
-    $.ajax({
-        url: 'ajax-process/sanpham.php',
-        type: 'POST',
-        dataType: 'json',
-        data: { id_sp: id_sp ,action: 'chitiet'},
-        success: function (response) {
-            if (response.status === 'success') {
-                const data = response.data.product;
-
-                // Điền thông tin vào form
-                $('#editTenSp').val(data.Ten_sp);
-                $('#editDanhMuc').val(data.id_dm);
-                $('#editXuatXu').val(data.id_xx);
-                $('#editNhaCungCap').val(data.id_ncc);
-                $('#editEditor').val(data.MoTa_sp);
-
-                // Hiển thị hình nền
-                if (data.Hinh_Nen) {
-                    $('#editImagePreview').attr('src', 'uploads/sanpham/' + data.Hinh_Nen).show();
-                } else {
-                    $('#editImagePreview').hide();
-                }
-
-                // Hiển thị hình chi tiết
-                const imageContainer = $('#editImagePreviewContainer');
-                imageContainer.empty();
-                if (data.Hinh_ChiTiet.length > 0) {
-                    data.Hinh_ChiTiet.forEach(function (image, index) {
-                        imageContainer.append(`
-                            <div class="d-inline-block position-relative me-2">
-                                <img src="uploads/sanpham/${image}" style="width: 100px; height: 100px; object-fit: cover;" />
-                                <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 btn-remove-image" data-index="${index}" data-file="${image}">X</button>
-                            </div>
-                        `);
-                    });
-                }
-
-                // Hiển thị danh sách Size
-                const sizeContainer = $('#sizeEditRows');
-                sizeContainer.empty();
-                data.sizes.forEach(function (size) {
-                    sizeContainer.append(`
-                        <tr>
-                            <td>
-                                <input type="text" class="form-control size-name" value="${size.Ten_dv}" disabled>
-                            </td>
-                            <td>
-                                <input type="number" class="form-control" name="sizes[GiaNhap][]" value="${size.GiaNhap}" required>
-                            </td>
-                            <td>
-                                <input type="number" class="form-control" name="sizes[GiaBan][]" value="${size.GiaBan}" required>
-                            </td>
-                            <td>
-                                <input type="number" class="form-control" name="sizes[KhuyenMai_Fast][]" value="${size.KhuyenMai_Fast}">
-                            </td>
-                            <td>
-                                <button type="button" class="btn btn-sm ${size.HoatDong ? 'btn-success' : 'btn-danger'} btn-toggle-status" data-id="${size.id_dg}" data-status="${size.HoatDong}">
-                                    ${size.HoatDong ? 'ON' : 'OFF'}
-                                </button>
-                            </td>
-                            <td>
-                                <button type="button" class="btn btn-danger btn-remove-size" data-id="${size.id_dg}">Xóa</button>
-                            </td>
-                        </tr>
-                    `);
-                });
-
-                // Hiển thị modal
-                $('#editProductModal').modal('show');
-            } else {
-                alert('Không thể lấy thông tin sản phẩm!');
-            }
-        },
-        error: function (xhr) {
-            console.error(xhr.responseText);
-        }
-    });
-});
-
+  
 
 
     // function LoadSanPham() {
@@ -249,12 +161,36 @@ $(document).on('click', '.btn-edit', function () {
                     // Cập nhật lại trạng thái của nút hiện tại
                     if (newStatus == 0) {
                         // Kích hoạt lại
+                        Fancybox.show([{
+                            src: `
+                        <div style="padding: 20px; text-align: center;">
+                            <div style="font-size: 50px; color: green; margin-bottom: 15px;">
+                                <img src="img/verified.gif" width="50" height="50">
+                            </div>
+                            <h3>Thông báo</h3>
+                            <p>Trạng thái: <strong>${response.message}</strong></p>
+                            <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                        </div>`,
+                            type: "html",
+                        }]);
                         $this
                             .removeClass('btn-danger')
                             .addClass('btn-success')
                             .data('status', 0) // Cập nhật trạng thái mới vào data attribute
                             .html('<i class="fas fa-check"></i> ON');
                     } else {
+                        Fancybox.show([{
+                            src: `
+                        <div style="padding: 20px; text-align: center;">
+                            <div style="font-size: 50px; color: green; margin-bottom: 15px;">
+                                <img src="img/verified.gif" width="50" height="50">
+                            </div>
+                            <h3>Thông báo</h3>
+                            <p>Trạng thái: <strong>${response.message}</strong></p>
+                            <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                        </div>`,
+                            type: "html",
+                        }]);
                         // Ngừng hoạt động
                         $this
                             .removeClass('btn-success')

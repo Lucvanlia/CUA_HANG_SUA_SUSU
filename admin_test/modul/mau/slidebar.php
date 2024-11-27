@@ -91,6 +91,22 @@
                 
             </li>
             <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUtilities2"
+                    aria-expanded="true" aria-controls="collapseUtilities1">
+                    <i class="fas fa-fw fa-wrench"></i>
+                    <span>Người dùng</span>
+                </a>
+                <div id="collapseUtilities2" class="collapse" aria-labelledby="headingUtilities"
+                    data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Quản lý:</h6>
+                        <a class="collapse-item"  href="index.php?action=quanlynhanvien&query=them">Nhân viên </a>
+                        <a class="collapse-item"  href="index.php?action=quanlykhachhang&query=them">Khách hàng </a>
+                    </div>
+                </div>
+                
+            </li>
+            <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUtilities1"
                     aria-expanded="true" aria-controls="collapseUtilities1">
                     <i class="fas fa-fw fa-wrench"></i>

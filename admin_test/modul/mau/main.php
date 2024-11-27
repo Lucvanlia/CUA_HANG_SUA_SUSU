@@ -80,7 +80,11 @@
         include "modul/qlysanpham/chitiet.php";
     }
     //============ kt quanlysanpham =================
-
+    elseif ($tam == 'quanlynhanvien' && $tam1 == 'them') {
+        include "modul/qlynhanvien/lietke.php";
+    }  elseif ($tam == 'quanlykhachhang' && $tam1 == 'them') {
+        include "modul/qlykhachhang/lietket.php";
+    } 
     //============ kt quanlytintuc =================
     elseif ($tam == 'quanlytintuc' && $tam1 == 'them') {
         include "modul/qlytintuc/lietke.php";
