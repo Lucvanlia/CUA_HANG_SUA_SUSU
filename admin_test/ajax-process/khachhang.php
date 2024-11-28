@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
             // Tạo mật khẩu ngẫu nhiên
             $password = substr(str_shuffle('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 10);
-            $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+            $hashedPassword = hash('sha256', $password);
             $token = bin2hex(random_bytes(50)); // 50 byte x 2 = 100 ký tự
             // Thêm người dùng vào cơ sở dữ liệu
             // Kiểm tra nếu tên nhà cung cấp không để trống
