@@ -1,214 +1,128 @@
 <?php
-
-// Kiểm tra phương thức AJAX
 include "../ketnoi/conndb.php";
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    $action = $_POST['action'] ?? '';
+    $action = $_POST['action'];
     switch ($action) {
-        case 'load': // Thêm nhà cung cấp
-    
-    
-            break;
-
-        case 'edit':
-            $id_kh = isset($_POST['id_kh']) ? mysqli_real_escape_string($link, $_POST['id_kh']) : '';
-            $name = isset($_POST['name']) ? mysqli_real_escape_string($link, $_POST['name']) : '';
-            $email = isset($_POST['email']) ? mysqli_real_escape_string($link, $_POST['email']) : '';
-            $phone = isset($_POST['phone']) ? mysqli_real_escape_string($link, $_POST['phone']) : '';
-            $dob = isset($_POST['dob']) ? mysqli_real_escape_string($link, $_POST['dob']) : '';
-            $password = isset($_POST['password']) ? mysqli_real_escape_string($link, $_POST['password']) : '';
-
-            // Kiểm tra tên, email hoặc số điện thoại trùng
-            $query_check = "SELECT * FROM KhachHang WHERE (Ten_kh = '$name' OR Email_kh = '$email' OR SDT_kh = '$phone') AND id_kh != '$id_kh'";
-            $result_check = mysqli_query($link, $query_check);
-
-            if ($result_check && mysqli_num_rows($result_check) > 0) {
-                // Trả về lỗi nếu có tài khoản trùng lặp
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Tên, email hoặc số điện thoại đã được sử dụng bởi tài khoản khác.'.$id_kh. '123',
-                ]);
-                exit;
-            }
-
-            // Xử lý cập nhật thông tin
-            if (empty($password)) {
-                $query_update = "UPDATE KhachHang SET Ten_kh = '$name', Email_kh = '$email', NgaySinh_kh = '$dob', SDT_kh = '$phone' WHERE id_kh = '$id_kh'";
-            } else {
-                $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-                $query_update = "UPDATE KhachHang SET Ten_kh = '$name', Email_kh = '$email', NgaySinh_kh = '$dob', SDT_kh = '$phone', Mk_kh = '$hashedPassword' WHERE id_kh = '$id_kh'";
-            }
-
-            if (mysqli_query($link, $query_update)) {
-                echo json_encode([
-                    'status' => 'success',
-                    'message' => 'Cập nhật thông tin khách hàng thành công.',
-                ]);
-            } else {
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Cập nhật thông tin khách hàng thất bại.',
-                ]);
-            }
-            exit;
-            break;
-
-        case 'get_customer':
-            $id_kh = isset($_POST['id_kh']) ? (int)$_POST['id_kh'] : 0;
-            if ($id_kh > 0) {
-                $query = "SELECT * FROM Khachhang WHERE id_kh = $id_kh";
-                $result = mysqli_query($link, $query);
-                if ($result && mysqli_num_rows($result) > 0) {
-                    $customer = mysqli_fetch_assoc($result);
-                    echo json_encode($customer);
-                } else {
-                    echo json_encode(null);
-                }
-            }
-            exit;
-            break;
-
         case 'search':
-            $keyword = isset($_POST['keyword']) ? mysqli_real_escape_string($link, $_POST['keyword']) : '';
-            $query = "SELECT id_kh, Ten_kh, Email_kh, NgaySinh_kh, HoatDong FROM Khachhang 
-                          WHERE Ten_kh LIKE '%$keyword%' OR Email_kh LIKE '%$keyword%'";
+            $keyword = isset($_POST['search']) ? mysqli_real_escape_string($link, $_POST['search']) : '';
+            $query = "
+                SELECT hdb.id_hdb, kh.Ten_kh, kh.Email_kh, hdb.TrangThai, hdb.ThanhToan, hdb.created_at
+                FROM HDB hdb
+                JOIN KhachHang kh ON hdb.id_kh = kh.id_kh
+                WHERE kh.Ten_kh LIKE '%$keyword%' OR kh.Email_kh LIKE '%$keyword%'
+                ORDER BY hdb.created_at DESC
+            ";
             $result = mysqli_query($link, $query);
 
-            $KhachhangList = [];
+            $hdbList = [];
             if ($result && mysqli_num_rows($result) > 0) {
                 while ($row = mysqli_fetch_assoc($result)) {
-                    $KhachhangList[] = $row;
+                    $hdbList[] = $row;
                 }
             }
 
-            echo hienThiKhachhang($KhachhangList, 1, count($KhachhangList), count($KhachhangList));
+            echo json_encode(['data' => $hdbList, 'total' => count($hdbList), 'page' => 1, 'limit' => count($hdbList)]);
             exit;
 
         case 'load':
-            $limit = 10; // Số khách hàng mỗi trang
+            $limit = 10; // Số hóa đơn mỗi trang
             $page = isset($_POST['page']) ? intval($_POST['page']) : 1;
             $offset = ($page - 1) * $limit;
 
-            // Lấy tổng số khách hàng
-            $totalQuery = "SELECT COUNT(*) as total FROM Khachhang";
+            // Tổng số hóa đơn
+            $totalQuery = "SELECT COUNT(*) as total FROM HDB";
             $totalResult = mysqli_query($link, $totalQuery);
             $totalRow = mysqli_fetch_assoc($totalResult);
             $total = $totalRow['total'];
 
-            // Lấy dữ liệu khách hàng cho trang hiện tại
-            $query = "SELECT id_kh, Ten_kh, Email_kh, NgaySinh_kh, HoatDong FROM Khachhang LIMIT $offset, $limit";
+            // Lấy dữ liệu hóa đơn cho trang hiện tại
+            $query = "
+                SELECT hdb.id_hdb, kh.Ten_kh, kh.Email_kh, hdb.TrangThai, hdb.ThanhToan, hdb.created_at
+                FROM HDB hdb
+                JOIN KhachHang kh ON hdb.id_kh = kh.id_kh
+                ORDER BY hdb.created_at DESC
+                LIMIT $offset, $limit
+            ";
             $result = mysqli_query($link, $query);
 
-            $KhachhangList = [];
+            $hdbList = [];
             if ($result && mysqli_num_rows($result) > 0) {
                 while ($row = mysqli_fetch_assoc($result)) {
-                    $KhachhangList[] = $row;
+                    $hdbList[] = $row;
                 }
             }
 
-            // Tạo HTML hiển thị
-            $html = hienThiKhachhang($KhachhangList, $page, $total, $limit);
-            echo $html;
+            echo json_encode(['data' => $hdbList, 'total' => $total, 'page' => $page, 'limit' => $limit]);
+            exit;
+        case 'getOrderDetails':
+            $id_hdb = intval($_POST['id_hdb']);
+
+            // Lấy thông tin hóa đơn
+            $orderQuery = "SELECT * FROM HDB WHERE id_hdb = $id_hdb";
+            $orderResult = mysqli_query($link, $orderQuery);
+            $order = mysqli_fetch_assoc($orderResult);
+
+            // Lấy thông tin chi tiết hóa đơn
+            $itemsQuery = "SELECT ct.*, sp.Ten_sp  , dv.Ten_dv
+                               FROM CT_HDB ct 
+                               JOIN SanPham sp ON ct.id_sp = sp.id_sp 
+                               Join Donvi dv on ct.id_dv = dv.id_dv
+                               WHERE ct.id_hdb = $id_hdb";
+            $itemsResult = mysqli_query($link, $itemsQuery);
+
+            $items = [];
+            while ($row = mysqli_fetch_assoc($itemsResult)) {
+                $items[] = $row;
+            }
+
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'order' => $order,
+                    'items' => $items,
+                ],
+            ]);
             exit;
 
+        case 'updateOrderStatus':
+            $id_hdb = $_POST['id_hdb'];
+            $TrangThai =$_POST['TrangThai'];
 
-        case 'toggle_status':
-            $id_ncc = $_POST['id'] ?? 0;
-            $newStatus = $_POST['status'] ?? 0;
+            // Kiểm tra dữ liệu đầu vào
+            if (empty($id_hdb)) {
+                $response = [
+                    'message' => 'Lỗi id',
+                    'status' => 'error',
+                ];                exit;
+            }
+            if (empty($TrangThai)) {
+                $response = [
+                    'message' => 'Lỗi trạng thái',
+                    'status' => 'error',
+                ];
+                exit;
+            }
+            $updateQuery = "UPDATE HDB SET TrangThai = $TrangThai WHERE id_hdb = $id_hdb";
+            $result = mysqli_query($link, $updateQuery);
 
-            if ($id_ncc > 0) {
-                // Truy vấn cập nhật trạng thái
-                $query = "UPDATE Khachhang SET Hoatdong = ? WHERE id_kh = ?";
-                $stmt = $link->prepare($query);
-                $stmt->bind_param("ii", $newStatus, $id_ncc);
-
-                if ($stmt->execute()) {
-                    $response['status'] = 'success';
-                    $response['message'] = 'Cập nhật trạng thái thành công!';
-                } else {
-                    $response['status'] = 'error';
-                    $response['message'] = 'Cập nhật trạng thái thất bại!';
-                }
+            if ($result) {
+                $response = [
+                    'message' => 'Cập nhật đơn hàng thành công',
+                    'status' => 'success',
+                ];
             } else {
-                $response['status'] = 'error';
-                $response['message'] = 'ID nhà cung cấp không hợp lệ!';
+                $response = [
+                    'message' => 'Không thể cập nhật trạng thái đơn hàng',
+                    'status' => 'error',
+                ];
             }
 
             echo json_encode($response);
             exit;
 
-
-            echo $html;
-            exit;
         default:
-            $response['message'] = 'Hành động không hợp lệ!';
-            break;
+            echo json_encode(['error' => 'Invalid action.']);
+            exit;
     }
-
-    // Trả về phản hồi JSON
-    echo json_encode($response);
-    exit();
-} else {
-    $response['message'] = 'Hành động không hợp lệ!';
-    echo json_encode($response);
-}
-
-
-function hienThiKhachhang($KhachhangList, $page, $total, $limit)
-{
-    $html = '<table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Tên</th>
-                        <th>Email</th>
-                        <th>Ngày sinh</th>
-                        <th>Chỉnh sửa</th>
-                        <th>Hoạt động</th>
-                    </tr>
-                </thead>
-                <tbody>';
-    $index = ($page - 1) * $limit + 1;
-    if (empty($KhachhangList)) {
-        return '<p>Không có khách hàng</p>';
-    }
-    foreach ($KhachhangList as $kh) {
-        $status = $kh['HoatDong'];
-        $statusText = ($status == 1) ? 'OFF' : 'ON';
-        $statusClass = ($status == 1) ? 'btn-danger' : 'btn-success';
-        $iconClass = ($status == 1) ? 'fa-times' : 'fa-check';
-
-        $html .= "<tr>
-                    <td>{$index}</td>
-                    <td>{$kh['Ten_kh']}</td>
-                    <td>{$kh['Email_kh']}</td>
-                    <td>{$kh['NgaySinh_kh']}</td>
-                    <td>
-                    <button class='btn btn-sm btn-warning btn-edit' 
-                        data-id='{$kh['id_kh']}'>
-                        <i class='fas fa-edit'></i>
-                    </button>
-                    </td>
-                    <td>
-                        <button class='btn btn-sm {$statusClass} btn-toggle-status' 
-                                data-id='{$kh['id_kh']}' 
-                                data-status='{$status}'>
-                            <i class='fas {$iconClass}'></i> {$statusText}
-                        </button>
-                    </td>
-                  </tr>";
-        $index++;
-    }
-    $html .= '</tbody></table>';
-
-    // Phân trang
-    $totalPages = ceil($total / $limit);
-    $html .= '<nav><ul class="pagination">';
-    for ($i = 1; $i <= $totalPages; $i++) {
-        $active = ($i == $page) ? 'active' : '';
-        $html .= "<li class='page-item {$active}'><a href='#' class='page-link' data-page='{$i}'>{$i}</a></li>";
-    }
-    $html .= '</ul></nav>';
-
-    return $html;
 }
