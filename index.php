@@ -6,9 +6,10 @@ require_once "admin_test/ketnoi/conndb.php";
 
 if (isset($_SESSION['message'])) {
     echo '
-    
-    <div id="myModal" class="modal">
+    <div id="myModal" class="modal" style="padding: 20px; text-align: center;">
+                                <img src="img/verified.gif" width="50" height="50" alt="Verified">
         <div class="modal-content">
+                                    <h3>Thông báo</h3>
             <p>' . $_SESSION['message'] . '</p>
             <span class="close">&times;</span>
         </div>
@@ -21,6 +22,24 @@ if (isset($_SESSION['message'])) {
 
     // Xóa thông báo sau khi hiển thị
     unset($_SESSION['message']);
+}
+?>
+<?php
+if (isset($_SESSION['login_success'])) {
+    $message = $_SESSION['login_success'];
+    echo "<script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Fancybox.show([{
+                    type: 'html',
+                    src: `<div style='text-align: center;'>
+                            <h3>$message</h3>
+                            <button onclick='Fancybox.close()' class='btn btn-primary mt-2'>Đóng</button>
+                          </div>`
+                }]);
+            });
+        </script>";
+    // Xóa session để thông báo không lặp lại
+    unset($_SESSION['login_success']);
 }
 ?>
 <!DOCTYPE html>
@@ -42,6 +61,8 @@ if (isset($_SESSION['message'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css">
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script>
     <link rel="stylesheet" href="css/jquery.fancybox.min.css">
     <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css">
     <link rel="stylesheet" href="css/font-awesome.min.css" type="text/css">
@@ -55,8 +76,8 @@ if (isset($_SESSION['message'])) {
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <!-- dropzone -->
     <!-- Dropzone CSS -->
-     <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
+    <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
 </head>
 <style>
     .header__logo a img {

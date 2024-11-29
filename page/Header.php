@@ -9,6 +9,7 @@
         text-decoration: none !important;
     }
  </style>
+ <?php var_dump($_SESSION['id_user'])?>
 <div class="humberger__menu__overlay"></div>
 <div class="humberger__menu__wrapper">
     <div class="humberger__menu__logo">
@@ -106,29 +107,29 @@
                         <ul>
                             <?php
 
-                            if (isset($_SESSION["login-facebook"])) {
-                                $sql2 = "SELECT * FROM  khachhang where facebook_id =" . $_SESSION["login-facebook"];
-                                $result = mysqli_query($link, $sql2);
-                                $count = mysqli_num_rows($result);
-                                while ($row = mysqli_fetch_array($result)) {
-                                    echo 'Xin chào: <a href="index.php?action=profile&query=profile">' . $row["Ten_KH"] . '</a>';
-                                }
-                            }
-                            if (isset($_SESSION["login-google"])) {
-                                $sql2 = "SELECT * FROM  khachhang where google_id =" . $_SESSION["login-google"];
-                                $result = mysqli_query($link, $sql2);
-                                $count = mysqli_num_rows($result);
-                                while ($row = mysqli_fetch_array($result)) {
-                                    echo 'Xin chào: <a href="index.php?action=profile&query=profile">' . $row["Ten_KH"] . '</a>';
-                                }
-                            }
-                            if (isset($_SESSION['id_user']) && !isset($_SESSION["login-google"])) {
-                                $sql2 = "SELECT * FROM  khachhang where id_kh =" . $_SESSION["id_user"];
+                            // if (isset($_SESSION["login-facebook"])) {
+                            //     $sql2 = "SELECT * FROM  khachhang where facebook_id =" . $_SESSION["login-facebook"];
+                            //     $result = mysqli_query($link, $sql2);
+                            //     $count = mysqli_num_rows($result);
+                            //     while ($row = mysqli_fetch_array($result)) {
+                            //         echo 'Xin chào: <a href="index.php?action=profile&query=profile">' . $row["Ten_KH"] . '</a>';
+                            //     }
+                            // }
+                            // if (isset($_SESSION["login-google"])) {
+                            //     $sql2 = "SELECT * FROM  khachhang where google_id =" . $_SESSION["login-google"];
+                            //     $result = mysqli_query($link, $sql2);
+                            //     $count = mysqli_num_rows($result);
+                            //     while ($row = mysqli_fetch_array($result)) {
+                            //         echo 'Xin chào: <a href="index.php?action=profile&query=profile">' . $row["Ten_KH"] . '</a>';
+                            //     }
+                            // }
+                            if (isset($_SESSION['id_user'])) {
+                                $sql2 = "SELECT * FROM  Khachhang where id_kh =" . $_SESSION["id_user"];
                                 $result = mysqli_query($link, $sql2);
                                 $count = mysqli_num_rows($result);
                                 while ($row = mysqli_fetch_array($result)) {
                                     $_SESSION['id_user'] = $row['id_kh'];
-                                    echo 'Xin chào: <a href="index.php?action=profile&query=profile">' . $row["Ten_KH"] . '</a>';
+                                    echo 'Xin chào: <a href="index.php?action=profile&query=profile">' . $row["Ten_kh"] . '</a>';
                                 }
                             }
                             ?>

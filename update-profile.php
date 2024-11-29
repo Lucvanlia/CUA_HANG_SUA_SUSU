@@ -21,37 +21,36 @@ if (isset($_POST['newPassword'])) {
     }
 
     // Mã hóa mật khẩu mới
-    $hashedPassword = md5($newPassword);
+    $newPassword = hash('sha256', $_POST['newPassword']); // Mã hóa mật khẩu
 
     // Giả sử người dùng đã đăng nhập và user_id được lưu trong session
     $userId = $_SESSION['id_user'];
 
     // Cập nhật mật khẩu mới vào database
-    $sql = "UPDATE khachhang SET mk_kh='$hashedPassword' WHERE id_kh='$_SESSION[id_user]'";
+    $sql = "UPDATE Khachhang SET Mk_kh = '$newPassword ' WHERE id_kh = '$userId'";
 
     if ($link->query($sql) === TRUE) {
         echo "success";
         unset($_SESSION['otp']);
-        header("location: https://banhangviet-tmi.net/doan_php/index.php?action=profile&query=profile");
     } else {
-        echo "Error: " . $link->error;
+        echo "Error: Không thể thực thi" . $link->error;
     }
 
     // Đóng kết nối
-    $link->close();
+    exit();
 }
-if (isset($_POST['status_profile']) ||isset($_FILES['profile_pic']))  {
+if (isset($_POST['status_profile']) ||isset($_FILES['Hinh_kh']))  {
     // Kiểm tra và xử lý ảnh đại diện
-    if (isset($_FILES['profile_pic'])) {
-        $file = $_FILES['profile_pic'];
-        $targetDir = "admin_test/modul/uploads/"; // Đường dẫn tuyệt đối đến thư mục uploads
+    if (isset($_FILES['Hinh_kh'])) {
+        $file = $_FILES['Hinh_kh'];
+        $targetDir = "admin_test/modul/uploads/Hinh_kh/"; // Đường dẫn tuyệt đối đến thư mục uploads
         $fileName = basename($file["name"]);
         $targetFilePath = $targetDir . $fileName;
 
         // Di chuyển file vào thư mục
         if (move_uploaded_file($file["tmp_name"], $targetFilePath)) {
             // Cập nhật đường dẫn ảnh vào cơ sở dữ liệu
-            $sql = "UPDATE khachhang SET profile_pic = '$targetFilePath' WHERE id_kh = ".$_SESSION['id_user'];
+            $sql = "UPDATE Khachhang SET Hinh_kh = '$targetFilePath' WHERE id_kh = ".$_SESSION['id_user'];
             if (mysqli_query($link, $sql)) {
                 echo "success";
             } else {
@@ -71,7 +70,7 @@ if (isset($_POST['status_profile']) ||isset($_FILES['profile_pic']))  {
         $dob = mysqli_real_escape_string($link, $_POST["dob"]);
         $address = mysqli_real_escape_string($link, $_POST["address"]);
 
-        $sql = "UPDATE khachhang SET Ten_KH = '$fullname', email_kh = '$email', sdt_kh = '$phone', namsinh_kh = '$dob' ,DChi_kh='$address' WHERE id_kh = ".$_SESSION['id_user'];
+        $sql = "UPDATE Khachhang SET Ten_KH = '$fullname', Email_kh = '$email', SDT_kh = '$phone', NgaySinh_kh = '$dob' ,Dchi_kh='$address' WHERE id_kh = ".$_SESSION['id_user'];
         
         if (mysqli_query($link, $sql)) {
             echo "success";

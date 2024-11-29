@@ -574,11 +574,11 @@ if (!isset($_SESSION["login-google"]) || !isset($_SESSION["login-facebook"]) || 
                             <img src="img/verified.gif" width="50" height="50" alt="Verified">
                             <h3>Thông báo</h3>
                             <p>${response.message}</p>
-                            <button  onclick="toggleForms('login')" class="btn btn-primary mt-2">Đăng nhập tại đây</button>
+                          <a href="https://banhangviet-tmi.net/doan_php/">  <button  onclick="toggleForms('login')" class="btn btn-primary mt-2">Đăng nhập tại đây</button></a>
                         </div>`,
                                 type: 'html',
                             }]);
-                            $('#formDangKy')[0].reset();
+                            $('#formDangNhap')[0].reset();
                         } else {
                             Fancybox.show([{
                                 src: `

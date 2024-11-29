@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             if (empty($password)) {
                 $query_update = "UPDATE KhachHang SET Ten_kh = '$name', Email_kh = '$email', NgaySinh_kh = '$dob', SDT_kh = '$phone' WHERE id_kh = '$id_kh'";
             } else {
-                $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+                $hashedPassword = hash('sha256', $password);
                 $query_update = "UPDATE KhachHang SET Ten_kh = '$name', Email_kh = '$email', NgaySinh_kh = '$dob', SDT_kh = '$phone', Mk_kh = '$hashedPassword' WHERE id_kh = '$id_kh'";
             }
 

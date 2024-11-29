@@ -3,17 +3,10 @@
 include("config.php");
 
 // Kiểm tra đăng nhập Facebook hoặc Google
-if (isset($_SESSION["login-facebook"]) && $_SESSION["login-facebook"] != "") {
-    $sql = "SELECT * FROM khachhang WHERE facebook_id = " . $_SESSION["login-facebook"];
+if (isset($_SESSION['id_user']) && $_SESSION['id_user'] != "") {
+    $sql = "SELECT * FROM Khachhang WHERE id_kh = " . $_SESSION['id_user'];
     $result = mysqli_query($link, $sql);
-} elseif (isset($_SESSION["login-google"]) && $_SESSION["login-google"] != "") {
-    $sql = "SELECT * FROM khachhang WHERE google_id = " . $_SESSION["login-google"];
-    $result = mysqli_query($link, $sql);
-} elseif (isset($_SESSION['id_user']) && $_SESSION['id_user'] != "") {
-    $sql = "SELECT * FROM khachhang WHERE id_kh = " . $_SESSION['id_user'];
-    $result = mysqli_query($link, $sql);
-} 
-else {
+} else {
     // Xử lý khi không có thông tin đăng nhập
     $result = null;
 }
@@ -65,7 +58,7 @@ else {
                 $row = mysqli_fetch_array($result);
             ?>
                 <div class="text-center mb-4">
-                    <?php if ($row["Authen_Email"] <= 0) { ?>
+                    <?php if ($row["Authen_kh"] <= 0) { ?>
                         <button class="btn btn-primary btn-sm" id="showProfileForm">Thông tin chính</button>
                         <button class="btn btn-success btn-sm" id="showPasswordForm">Đổi mật khẩu</button>
                         <a class="btn btn-success btn-sm" href="?action=profile&query=orders">Lịch sử mua hàng</a>
@@ -78,10 +71,10 @@ else {
 
                 <div class="profile-img text-center mb-4">
                     <?php
-                    if ($row["profile_pic"] != "")
-                        echo '<img src="' . $row["profile_pic"] . '" alt="' . $row["id_kh"] . '" id="profilePicture" class="img-thumbnail">';
+                    if ($row["Hinh_kh"] != "")
+                        echo '<img src="' . $row["Hinh_kh"] . '" alt="' . $row["id_kh"] . '" id="profilePicture" class="img-thumbnail">';
                     else
-                        echo '<img src="default-profile.png" alt="Profile Picture" id="profilePicture" class="img-thumbnail">';
+                        echo '<img src="img/hinh_kh.jpg" alt="Profile Picture" id="profilePicture" class="img-thumbnail">';
                     ?>
                     <br>
                     <input type="file" id="uploadImage" accept="image/*">
@@ -89,26 +82,26 @@ else {
                 </div>
 
                 <form id="profileForm" method="post" enctype="multipart/form-data">
-                    <input type="hidden" value="update" name ="status_profile">
+                    <input type="hidden" value="update" name="status_profile">
                     <div class="mb-3">
                         <label for="fullname" class="form-label">Tên người dùng:</label>
-                        <input type="text" class="form-control" id="fullname" name="fullname" value="<?php echo $row["Ten_KH"] ?>" required>
+                        <input type="text" class="form-control" id="fullname" name="fullname" value="<?php echo $row["Ten_kh"] ?>" required>
                     </div>
                     <div class="mb-3">
                         <label for="email" class="form-label">Email:</label>
-                        <input type="email" class="form-control" id="email" name="email" value="<?php echo $row["email_kh"] ?>" required>
+                        <input type="email" class="form-control" id="email" name="email" value="<?php echo $row["Email_kh"] ?>" required>
                     </div>
                     <div class="mb-3">
                         <label for="phone" class="form-label">Số điện thoại:</label>
-                        <input type="text" class="form-control" id="phone" name="phone" value="<?php echo $row["sdt_kh"] ?>" required>
+                        <input type="text" class="form-control" id="phone" name="phone" value="<?php echo $row["SDT_kh"] ?>" required>
                     </div>
                     <div class="mb-3">
                         <label for="dob" class="form-label">Ngày sinh:</label>
-                        <input type="date" class="form-control" id="dob" name="dob" value="<?php echo $row["namsinh_kh"] ?>" required>
+                        <input type="date" class="form-control" id="dob" name="dob" value="<?php echo $row["NgaySinh_kh"] ?>" required>
                     </div>
                     <div class="mb-3">
                         <label for="Address" class="form-label">Địa chỉ</label>
-                        <textarea class="form-control" id="Address" name="address" rows="3"><?php echo $row["DChi_kh"]; ?></textarea>
+                        <textarea class="form-control" id="Address" name="address" rows="3"><?php echo $row["Dchi_kh"]; ?></textarea>
                     </div>
                     <div class="d-grid">
                         <button type="submit" id="submit-update" name="submit-kh" class="btn btn-success">Cập nhật thông tin</button>
@@ -122,7 +115,7 @@ else {
                         <button class="btn btn-primary mb-3" id="sendOtpBtn">Gửi OTP</button>
 
                         <!-- Input để nhập OTP -->
-                        <div class="mb-3" >
+                        <div class="mb-3">
                             <label for="otp" class="form-label">Nhập OTP:</label>
                             <input type="text" class="form-control" id="otp" name="otp" required>
                         </div>
@@ -240,15 +233,7 @@ else {
 
                 // Đổi mật khẩu
                 $('#passwordForm').on('submit', function(event) {
-                    event.preventDefault();
-                    var newPassword = $('#newPassword').val();
-                    var confirmPassword = $('#confirmPassword').val();
-
-                    if (newPassword !== confirmPassword) {
-                        alert("Mật khẩu xác nhận không khớp.");
-                        return;
-                    }
-
+                  
 
                 });
             });
@@ -293,8 +278,16 @@ else {
                     processData: false,
                     success: function(response) {
                         if (response === "success") {
-                            alert("Cập nhật thông tin thành công!");
-                        } else {
+                            Fancybox.show([{
+                                src: `
+                        <div style="padding: 20px; text-align: center;">
+                            <img src="img/verified.gif" width="50" height="50" alt="Verified">
+                            <h3>Thông báo</h3>
+                            <p>Cập nhật thông tin thành công</p>
+                            <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                        </div>`,
+                                type: 'html',
+                            }]);                        } else {
                             alert("Có lỗi xảy ra: " + response);
                         }
                     },
@@ -307,7 +300,7 @@ else {
             // AJAX cho việc cập nhật ảnh
             $('#uploadImage').on('change', function() {
                 var formData = new FormData();
-                formData.append('profile_pic', this.files[0]);
+                formData.append('Hinh_kh', this.files[0]);
 
                 $.ajax({
                     url: 'update-profile.php',
@@ -317,8 +310,17 @@ else {
                     processData: false,
                     success: function(response) {
                         if (response === "success") {
-                            alert("Ảnh đã được cập nhật thành công!");
-                        } else if(response === "false") {
+                            Fancybox.show([{
+                                src: `
+                        <div style="padding: 20px; text-align: center;">
+                            <img src="img/verified.gif" width="50" height="50" alt="Verified">
+                            <h3>Thông báo</h3>
+                            <p>Cập nhật ảnh thành công</p>
+                            <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                        </div>`,
+                                type: 'html',
+                            }]);
+                        } else if (response === "false") {
                             alert("Có lỗi khi cập nhật ảnh: " + response);
                         }
                     },
@@ -336,7 +338,16 @@ else {
                     email: email
                 }, function(response) {
                     if (response === "OTP sent") {
-                        alert("OTP đã được gửi đến email của bạn.");
+                        Fancybox.show([{
+                            src: `
+                        <div style="padding: 20px; text-align: center;">
+                            <img src="img/verified.gif" width="50" height="50" alt="Verified">
+                            <h3>Thông báo</h3>
+                            <p>OPT đã gửi đến email của bạn</p>
+                            <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                        </div>`,
+                            type: 'html',
+                        }]);
                     } else {
                         alert("Có lỗi khi gửi OTP.");
                     }
@@ -351,7 +362,16 @@ else {
                     otp: otp
                 }, function(response) {
                     if (response === "OTP verified") {
-                        alert("OTP xác nhận thành công. Bạn có thể đổi mật khẩu.");
+                        Fancybox.show([{
+                            src: `
+                        <div style="padding: 20px; text-align: center;">
+                            <img src="img/verified.gif" width="50" height="50" alt="Verified">
+                            <h3>Thông báo</h3>
+                            <p>OTP xác nhận thành công. Bạn có thể đổi mật khẩu</p>
+                            <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                        </div>`,
+                            type: 'html',
+                        }]);
                         $('#otpForm').addClass('hidden');
                         $('#passwordForm').removeClass('hidden');
                     } else {
@@ -406,8 +426,16 @@ else {
                         otp: otp
                     }, function(response) {
                         if (response === "OTP verified") {
-                            alert('OTP xác nhận thành công. Bạn có thể đổi mật khẩu.');
-                            $('#passwordForm').removeClass('hidden');
+                            Fancybox.show([{
+                                    src: `
+                        <div style="padding: 20px; text-align: center;">
+                            <img src="img/verified.gif" width="50" height="50" alt="Verified">
+                            <h3>Thông báo</h3>
+                            <p>OTP xác nhận thành công bạn có thể đổi mật khẩu ngay</p>
+                            <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                        </div>`,
+                                    type: 'html',
+                                }]);                            $('#passwordForm').removeClass('hidden');
                         } else {
                             alert('OTP không chính xác.');
                         }
@@ -420,6 +448,23 @@ else {
             $(document).ready(function() {
                 // Cập nhật thông tin người dùng bằng AJAX
                 $('#changePasswordForm').on('submit', function(event) {
+                    event.preventDefault();
+                    var newPassword = $('#newPassword').val();
+                    var confirmPassword = $('#confirmPassword').val();
+
+                    if (newPassword !== confirmPassword) {
+                        Fancybox.show([{
+                                    src: `
+                        <div style="padding: 20px; text-align: center;">
+                            <img src="img/error.gif" width="50" height="50" alt="Verified">
+                            <h3>Thông báo</h3>
+                            <p>Mật khẩu không khơp </p>
+                            <button onclick="Fancybox.close();" class="btn btn-primary mt-2">Đóng</button>
+                        </div>`,
+                                    type: 'html',
+                                }]);                        return;
+                    }
+
                     event.preventDefault(); // Ngăn chặn hành động submit mặc định
                     var formData = new FormData(this);
                     $.ajax({
@@ -430,7 +475,18 @@ else {
                         processData: false,
                         success: function(response) {
                             if (response === "success") {
-                                alert("Cập nhật thông tin thành công!");
+                                Fancybox.show([{
+                                    src: `
+                        <div style="padding: 20px; text-align: center;">
+                            <img src="img/verified.gif" width="50" height="50" alt="Verified">
+                            <h3>Thông báo</h3>
+                            <p>Cập nhật thông tin mật khẩu thành công</p>
+                            <button onclick="location.reload();;" class="btn btn-primary mt-2">Đóng</button>
+                        </div>`,
+                                    type: 'html',
+                                }]);
+                                $('#changePasswordForm')[0].reset();
+                               
                             } else if (response === "empty") {
                                 alert("Mật khẩu không được để trống");
                             } else {

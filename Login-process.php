@@ -1,6 +1,6 @@
 <?php
+session_start();
 header('Content-Type: application/json; charset=utf-8'); // Thêm header JSON
-
 include "admin_test/ketnoi/conndb.php";
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['action'] == 'register') {
@@ -83,10 +83,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['action'] == 'login') {
                 $stmt->fetch();
                 // $message = "Đăng nhập thành công!";
                 $_SESSION['id_user'] = $user_id;
+                $_SESSION['login_success'] = "Đăng nhập thành công! Chào mừng bạn trở lại.";
                 echo json_encode([
                     'status' => 'success',
                     'message' => 'Đăng nhập thành công'
                 ]);
+                exit();
                 exit;
                 // $message = "Đăng nhập thành công";
                 // header("Location: http://banhangviet-tmi.net/doan_php/");
@@ -95,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $_POST['action'] == 'login') {
             else {
                 echo json_encode([
                     'status' => 'error',
-                    'message' => 'Mật khẩu sai' .$password.'</br>'.$hashed_password
+                    'message' => 'Mật khẩu sai' . $password . '</br>' . $hashed_password
                 ]);
                 exit;
             }
