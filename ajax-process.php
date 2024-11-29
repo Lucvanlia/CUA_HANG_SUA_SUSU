@@ -42,7 +42,7 @@ switch ($status) {
         if ($id_sp <= 0 || $id_dv <= 0 || $quantity <= 0 || $quantity > $max_quantity) {
             error_log("Invalid data: id_sp=$id_sp, id_dv=$id_dv, quantity=$quantity, max_quantity=$max_quantity, price=$price");
             echo json_encode(['status' => 'error', 'message' => "Dữ liệu không hợp lệ hoặc vượt giới hạn: id_sp=$id_sp, id_dv=$id_dv, quantity=$quantity, max_quantity=$max_quantity, price=$price"]);
-            exit;
+            exit();
         }
 
         $found = false;
@@ -51,7 +51,7 @@ switch ($status) {
             if ($item['id_sp'] === $id_sp && $item['id_dv'] === $id_dv) {
                 if ($item['SoLuong'] + $quantity > $max_quantity) {
                     echo json_encode(['status' => 'error', 'message' => 'Bạn đã mua số lượng tối đa của sản phẩm này.']);
-                    exit;
+                    exit();
                 }
 
                 $item['SoLuong'] += $quantity;
@@ -65,12 +65,14 @@ switch ($status) {
                 'id_sp' => $id_sp,
                 'id_dv' => $id_dv,
                 'SoLuong' => $quantity,
-                'GiaBan' => $price
+                'GiaBan' => $price,
+                'max_quantity' => $max_quantity
             ];
         }
 
         echo json_encode(['status' => 'success', 'message' => 'Sản phẩm đã được thêm vào giỏ hàng.']);
-        exit;
+            exit();
+            break;
     case 'del-item':
         $id_sp = $_POST['id']; // Lấy ID sản phẩm cần xóa
         $cart = &$_SESSION['cart']; // Giỏ hàng trong session
@@ -109,6 +111,91 @@ switch ($status) {
             'total' => $total,
             'cartEmpty' => $cartEmpty
         ]);
+        exit;
+        break;
+    case 'update-cart':
+        $productId = $_POST['id'];
+        $quantity = $_POST['quantity'];
+        $cart = &$_SESSION['cart'];
+
+        // Lấy số lượng tối đa của sản phẩm (ví dụ, từ cơ sở dữ liệu)
+        // Ở đây tôi giả sử bạn có một hàm hoặc biến chứa thông tin tồn kho
+        $max_quantity = getMaxQuantityFromDatabase($productId); // Hàm lấy tồn kho sản phẩm
+
+        // Kiểm tra nếu số lượng yêu cầu lớn hơn tồn kho
+        if ($quantity > $max_quantity) {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Số lượng vượt quá tồn kho'
+            ]);
+            exit;
+        }
+
+        // Kiểm tra nếu sản phẩm tồn tại trong giỏ hàng
+        $found = false;
+        foreach ($cart as &$item) {
+            if ($item['id_sp'] == $productId) {
+                $item['SoLuong'] = $quantity; // Cập nhật số lượng sản phẩm
+                $found = true;
+                break;
+            }
+        }
+
+        if ($found) {
+            // Tính lại tổng tiền
+            $total = 0;
+            foreach ($cart as $item) {
+                $total += $item['SoLuong'] * $item['GiaBan'];
+            }
+
+            // Cập nhật tổng tiền vào session
+            $_SESSION['tong_tien'] = $total;
+
+            echo json_encode([
+                'status' => 'success',
+                'total' => $total
+            ]);
+        } else {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Không tìm thấy sản phẩm trong giỏ hàng.'
+            ]);
+        }
+        // Hàm lấy số lượng tồn kho từ cơ sở dữ liệu (giả sử bạn đã có bảng hoặc dữ liệu tồn kho)
+        function getMaxQuantityFromDatabase($productId)
+        {
+            function getMaxQuantityFromDatabase($productId) {
+                // Kết nối tới cơ sở dữ liệu (giả sử bạn đã có kết nối ở đâu đó)
+                global $$link; // $$link là biến kết nối của bạn, nếu dùng PDO hoặc MySQLi
+            
+                // Truy vấn SQL để lấy số lượng tồn kho của sản phẩm
+                $sql = "SELECT SoLuong FROM DonGia WHERE id_sp = ?";
+                
+                // Sử dụng prepared statement để tránh SQL Injection
+                if ($stmt = $$link->prepare($sql)) {
+                    // Gắn giá trị cho parameter
+                    $stmt->bind_param("i", $productId);
+                    
+                    // Thực thi câu lệnh
+                    $stmt->execute();
+                    
+                    // Lấy kết quả
+                    $stmt->bind_result($maxQuantity);
+                    $stmt->fetch();
+                    
+                    // Đóng statement
+                    $stmt->close();
+                    
+                    // Trả về số lượng tối đa tồn kho
+                    return $maxQuantity;
+                } else {
+                    // Nếu có lỗi, trả về giá trị mặc định là 0
+                    return 0;
+                }
+            }
+            
+        }
+
         exit;
         break;
     default:
@@ -196,7 +283,4 @@ if (isset($_POST['payment_method'])) {
         // Xử lý thanh toán qua VNPay
         echo "success_vnpay";
     }
-} 
-
-// xử lý giỏ hàng
-// Kết nối cơ sở dữ liệu
+}

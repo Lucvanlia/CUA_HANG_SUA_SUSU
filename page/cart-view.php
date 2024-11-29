@@ -55,6 +55,7 @@
                                         $row_dv = mysqli_fetch_assoc($result_dv);
                                         $ten_sp =  $row_dv ? $row_dv['Ten_sp'] : 'Không xác định';
                                         $hinh =  $row_dv ? $row_dv['Hinh_Nen'] : 'Không xác định';
+                                        // $max_quantity = $item.['max_quantity'];
                                         // Hiển thị thông tin sản phẩm
                                 ?>
                                         <tr class="cart-item">
@@ -67,7 +68,7 @@
                                             </td>
                                             <td class="text-center"><?= number_format($gia, 0, ',', '.') ?> VNĐ</td>
                                             <td class="text-center">
-                                                <input style="width: 50px;" type="number" value="<?= $soluong ?>" class="text-center quantity" oninput="updateCart()" name="soluong" data-id="<?= $item['id_sp'] ?>" data-price="<?= $gia ?>">
+                                                <input style="width: 50px;" type="number" value="<?= $soluong ?>" class="text-center quantity" oninput="updateCart()" name="soluong" data-id="<?= $item['id_sp'] ?>" data-price="<?= $gia ?>" max="<?= $max_quantity ?>" min="1">
                                             </td>
                                             <td class="text-center"><?= $ten_dv ?></td> <!-- Hiển thị tên đơn vị -->
                                             <td class="text-right" id="total-<?= $item['id_sp'] ?>"><?= number_format($tt, 0, ',', '.') ?> VNĐ</td>
@@ -122,5 +123,64 @@
 </section>
 
 <script>
+function updateCart(input) {
+    var quantity = parseInt(input.value); // Lấy giá trị số lượng nhập vào
+    var productId = $(input).data('id'); // Lấy ID sản phẩm từ thuộc tính data-id
+    var price = $(input).data('price'); // Lấy giá sản phẩm từ thuộc tính data-price
+    var maxQuantity = $(input).attr('max'); // Lấy giá trị tối đa của số lượng
+
+    // Kiểm tra nếu số lượng không hợp lệ (nếu nhỏ hơn 1 hoặc không phải số)
+    if (isNaN(quantity) || quantity < 1) {
+        alert('Số lượng không hợp lệ!');
+        input.value = 1; // Đặt lại số lượng về 1 nếu nhập không hợp lệ
+        return;
+    }
+
+    // Kiểm tra nếu số lượng vượt quá tồn kho
+    if (quantity > maxQuantity) {
+        alert('Số lượng yêu cầu vượt quá tồn kho! Vui lòng chọn lại.');
+        input.value = maxQuantity; // Đặt lại số lượng về giá trị tối đa
+        return;
+    }
+
+    // Tính lại thành tiền cho sản phẩm
+    var totalPrice = quantity * price;
+
+    // Cập nhật giá trị thành tiền của sản phẩm đó
+    $("#total-" + productId).text(totalPrice.toLocaleString('vi-VN') + " VNĐ");
+
+    // Gửi AJAX để cập nhật giỏ hàng trên server
+    $.ajax({
+        url: 'ajax-process.php',
+        method: 'POST',
+        data: {
+            id: productId,
+            quantity: quantity,
+            status: 'update-cart'
+        },
+        success: function(response) {
+            try {
+                var data = JSON.parse(response);
+                if (data.status === 'success') {
+                    // Cập nhật tổng tiền của giỏ hàng
+                    $("#tong-tien").text(data.total.toLocaleString('vi-VN') + " VNĐ");
+
+                    // Thông báo thành công
+                    alert("Số lượng sản phẩm đã được cập nhật thành công!");
+                } else {
+                    alert("Có lỗi xảy ra khi cập nhật giỏ hàng.");
+                }
+            } catch (e) {
+                console.error("Lỗi khi xử lý dữ liệu:", e);
+                alert("Lỗi khi cập nhật giỏ hàng.");
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("Error:", error);
+            alert("Lỗi kết nối với máy chủ.");
+        }
+    });
+}
+
 
 </script>
