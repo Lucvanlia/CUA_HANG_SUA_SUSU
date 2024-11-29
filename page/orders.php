@@ -1,17 +1,27 @@
 <?php
 if (isset($_SESSION['id_user'])) {
-    $sql_hd = "SELECT *, FROM_UNIXTIME(NgayLapHD, '%Y-%m') as ThangNam 
-           FROM hoadon
+    $id_user = mysqli_real_escape_string($link, $_SESSION['id_user']);
+    $sql_hd = "SELECT *, FROM_UNIXTIME(created_at, '%Y-%m') as ThangNam 
+           FROM hdb
            WHERE id_kh = " . $_SESSION['id_user'] . "
-           ORDER BY NgayLapHD DESC";
-    $sql_ct = "SELECT * , ct.SoLuong as sl
-    FROM ctiethd ct
-    JOIN dmsp sp ON sp.id_sp = ct.id_sp
-    WHERE ct.id_hd IN (
-        SELECT id_hd
-        FROM hoadon
-        WHERE id_kh = " . $_SESSION['id_user'] . "
-    )";
+           ORDER BY created_at DESC";
+           $sql_ct = "
+           SELECT 
+               sp.Ten_sp AS Ten_sp, 
+               ct.SoLuong AS SoLuong, 
+               dv.Ten_dv AS Ten_dv, 
+               ct.DonGia AS DonGia, 
+               ct.id_hdb AS id_hdb
+           FROM ct_hdb ct
+           JOIN Sanpham sp ON sp.id_sp = ct.id_sp
+           JOIN DonVi dv ON dv.id_dv = ct.id_dv
+           WHERE ct.id_hdb IN (
+               SELECT id_hdb
+               FROM hdb
+               WHERE id_kh = '$id_user'
+           )
+           ORDER BY sp.Ten_sp, ct.SoLuong, dv.Ten_dv, ct.DonGia, ct.id_hdb
+       ";
 
     $result_hd = mysqli_query($link, $sql_hd);
     $result_ct = mysqli_query($link, $sql_ct);
@@ -64,33 +74,35 @@ if (isset($_SESSION['id_user'])) {
             <?php foreach ($orders_by_month as $month_year => $orders) { ?>
                 <div class="py-2">
                     <h3 class="text-primary"><?= date("F Y", strtotime($month_year . "-01")) ?></h3>
-                    <?php foreach ($orders as $row_hd) { ?>
+                    <?php
+                    $tongtien = 0;
+                    foreach ($orders as $row_hd) { ?>
                         <div class="accordion-item py-2">
-                            <h2 class="accordion-header" id="heading<?= $row_hd['id_hd'] ?>">
-                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#order<?= $row_hd['id_hd'] ?>" aria-expanded="true" aria-controls="order<?= $row_hd['id_hd'] ?>">
-                                    Đơn hàng #<?= $row_hd['id_hd'] ?> -
+                            <h2 class="accordion-header" id="heading<?= $row_hd['id_hdb'] ?>">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#order<?= $row_hd['id_hdb'] ?>" aria-expanded="true" aria-controls="order<?= $row_hd['id_hdb'] ?>">
+                                    Đơn hàng #<?= $row_hd['id_hdb'] ?> -
                                     <?php
                                     $status = "";
                                     switch ($row_hd['TrangThai']) {
-                                        case '0':
+                                        case '1':
                                             $status = "<span class='order-status' style='color: green;'>Đã giao hàng</span>";
                                             break;
-                                        case '1':
+                                        case '2':
                                             $status = "<span class='order-status' style='color: orange;'>Chờ xác nhận</span>";
                                             break;
-                                        case '2':
+                                        case '3':
                                             $status = "<span class='order-status' style='color: blue;'>Đã xác nhận</span>";
                                             break;
-                                        case '3':
+                                        case '4':
                                             $status = "<span class='order-status' style='color: purple;'>Đang giao hàng</span>";
                                             break;
-                                        case '4':
+                                        case '5':
                                             $status = "<span class='order-status' style='color: green;'>Đã nhận hàng</span>";
                                             break;
-                                        case '5':
+                                        case '6':
                                             $status = "<span class='order-status' style='color: red;'>Yêu cầu hủy đơn hàng</span>";
                                             break;
-                                        case '6':
+                                        case '7':
                                             $status = "<span class='order-status' style='color: red;'>Đơn hàng đã được hủy</span>";
                                             break;
                                     }
@@ -99,27 +111,61 @@ if (isset($_SESSION['id_user'])) {
                                     ?>
                                 </button>
                             </h2>
-                            <div id="order<?= $row_hd['id_hd'] ?>" class="accordion-collapse collapse" aria-labelledby="heading<?= $row_hd['id_hd'] ?>" data-bs-parent="#orderHistory">
+                            <div id="order<?= $row_hd['id_hdb'] ?>" class="accordion-collapse collapse" aria-labelledby="heading<?= $row_hd['id_hdb'] ?>" data-bs-parent="#orderHistory">
                                 <div class="accordion-body">
-                                    <p><strong>Ngày đặt hàng:</strong> <?= date("d/m/Y H:i:s", $row_hd['NgayLapHD']) ?></p>
-                                    <p><strong>Tổng tiền:</strong> <?= number_format($row_hd['tongtien'], 0, ',', '.') ?> VND</p>
+                                    <p><strong>Ngày đặt hàng:</strong> <?= $row_hd['created_at'] ?></p>
+                                    <p><strong>Tổng tiền:</strong> <?= number_format($tongtien, 0, ',', '.') ?> VND</p>
                                     <p><strong>Trạng thái:</strong>
-                                        <?php if ($row_hd['thanhtoan'] == 0) echo '<span class="p-1 mb-1 bg-success text-center text-white rounded-pill">Thanh toán trực tuyến';
-                                        else echo 'chưa thah thoán'; ?>
+                                        <?php if ($row_hd['ThanhToan'] == 1) echo '<span class="p-1 mb-1 bg-success text-center text-white rounded-pill">Đã thanh toán COD';
+                                        else if ($row_hd['ThanhToan'] == 2) echo '<span class="p-1 mb-1 bg-primary text-center text-white rounded-pill">Đã thanh toán chuyển khoản';
+                                        else  echo '<span class="p-1 mb-1 bg-danger text-center text-white rounded-pill">Chưa thanh toán' ?>
                                         </span>
                                     </p>
-                                    <p><strong>Chi tiết sản phẩm:</strong></p>
-                                    <ul>
-                                        <?php
-                                        // Lặp qua các chi tiết sản phẩm của đơn hàng hiện tại
-                                        mysqli_data_seek($result_ct, 0); // Đặt con trỏ về đầu
-                                        while ($row_ct = mysqli_fetch_array($result_ct)) {
-                                            if ($row_ct['id_hd'] == $row_hd['id_hd']) {
-                                                // var_dump($row_ct);
-                                                echo "<li>" . $row_ct['Tensp'] . " - " . $row_ct['sl'] . "Kg - " . number_format($row_ct['gia'], 0, ',', '.') . " VND</li>";
+                                    <p><strong>Sản phẩm trong hóa đơn:</strong></p>
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">STT</th>
+                                                <th scope="col">Tên sản phẩm</th>
+                                                <th scope="col">Số lượng</th>
+                                                <th scope="col">Kích thước</th>
+                                                <th scope="col">Đơn Giá</th>
+                                                <th scope="col">Thành tiền</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php
+                                            $stt = 1;
+                                            
+                                            // Lặp qua các chi tiết sản phẩm của đơn hàng hiện tại
+                                            mysqli_data_seek($result_ct, 0); // Đặt con trỏ về đầu
+                                            while ($row_ct = mysqli_fetch_array($result_ct)) {
+                                                $thanhtien = $row_ct['DonGia']*$row_ct['SoLuong'];
+                                                if ($row_ct['id_hdb'] == $row_hd['id_hdb']) {
+                                                    // var_dump($row_ct);
+                                                    echo "                                        <tr>
+                                                    <th scope='row'>" . $stt . "</th>
+                                                      <td> " . $row_ct['Ten_sp'] . " </td>
+                                               <td> " . $row_ct['SoLuong'] . "  </td>
+                                                <td>" . $row_ct['Ten_dv'] . "</td>
+                                              <td>  " . number_format($row_ct['DonGia'], 0, ',', '.') . "</td> 
+                                            <td>  " . number_format($thanhtien, 0, ',', '.') . "</td> 
+
+                                              </tr>";
+                                                       $stt++;
+                                                $tongtien += $thanhtien;
+                                                }
+                                       
                                             }
-                                        }
-                                        ?>
+                                            ?>
+
+
+
+
+                                        </tbody>
+                                    </table>
+                                    <ul>
+
                                     </ul>
                                     <button class="btn btn-danger btn-cancel-order">Yêu cầu hủy đơn hàng</button>
                                 </div>

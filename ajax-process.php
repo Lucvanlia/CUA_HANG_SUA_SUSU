@@ -18,153 +18,104 @@ error_log(print_r($_POST, true)); // Kiểm tra dữ liệu trong console PHP
     }
 }*/
 
-if (isset($_POST['id'])) {
-    $tong = 0;
-    $status = $_POST['status'];
-    // Kiểm tra giỏ hàng đã tồn tại chưa, nếu chưa thì tạo
-    if (!isset($_SESSION['cart'])) {
-        $_SESSION['cart'] = [];
-    }
+$status = isset($_POST['status']) ? $_POST['status'] : '';
 
-    switch ($status) {
-        case 'add':
-            $id = $_POST['id'];
-            $ten = $_POST['ten'];
-            $gia = $_POST['gia'];
-            $hinh = $_POST['hinh'];
-            $soluong = $_POST['soluong'];
-            $maxStock = 20; // Giả sử số lượng tồn kho là 20 (cần lấy từ DB)
-
-            $exists = false;
-            $tong = 0; // Khởi tạo tổng tiền
-
-            // Kiểm tra xem sản phẩm đã có trong giỏ hàng chưa
-            foreach ($_SESSION['cart'] as &$cartItem) {
-                if ($cartItem[0] == $id) {
-
-
-                    // Nếu sản phẩm đã tồn tại, kiểm tra số lượng
-                    $newQuantity = $cartItem[4] + $soluong;
-                    if ($newQuantity <= $maxStock) {
-                        $cartItem[4] = $newQuantity; // Cập nhật số lượng mới
-                        $exists = true; // Đánh dấu sản phẩm đã tồn tại
-                    } else {
-                        echo json_encode(['status' => 'exceeded']); // Số lượng vượt quá số lượng tồn kho
-                        exit(); // Thoát ngay sau khi gửi thông báo
-                    }
-
-
-                    break; // Thoát vòng lặp nếu đã tìm thấy sản phẩm
-                }
-            }
-
-            // Nếu sản phẩm chưa có trong giỏ hàng, thêm mới
-            if (!$exists) {
-                $item = array($id, $ten, $gia, $hinh, $soluong);
-                $_SESSION['cart'][] = $item; // Thêm sản phẩm mới vào giỏ hàng
-                $exists = true; // Đánh dấu sản phẩm mới đã được thêm
-            }
-
-            // Tính toán tổng tiền
-            foreach ($_SESSION['cart'] as $item) {
-                $tt = $item[2] * $item[4]; // Thành tiền cho sản phẩm
-                $tong += $tt; // Cộng vào tổng tiền
-            }
-
-            // Lưu tổng tiền vào session
-            $_SESSION['tong_tien'] = $tong;
-
-            // Trả về thông tin cho client
-            echo json_encode(['status' => $exists ? 'added' : 'new', 'total' => $tong]);
-
-            exit();
-            break;
-
-
-        case 'del-item':
-            if (count($_SESSION['cart']) <= 0) {
-                $tong = 0;
-                $_SESSION['tong_tien'] = $tong;
-            }
-            if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0 && isset($_POST['id'])) {
-                $itemId = $_POST['id'];
-                foreach ($_SESSION['cart'] as $key => $item) {
-                    if ($item[0] == $itemId) {
-                        unset($_SESSION['cart'][$key]); // Xóa sản phẩm khỏi giỏ
-                        break;
-                    }
-                }
-
-                // Khởi tạo tổng tiền
-                $tong = 0;
-
-                // Tính tổng tiền sau khi xóa sản phẩm
-                foreach ($_SESSION['cart'] as $item) {
-                    $tt = $item[2] * $item[4]; // Thành tiền cho sản phẩm
-                    $tong += $tt; // Cộng vào tổng tiền
-                }
-
-                // Trả về thông tin cho client
-                header('Content-Type: application/json');
-
-                // Lưu tổng tiền vào session
-                $_SESSION['tong_tien'] = $tong;
-                echo json_encode(['status' => 'success', 'total' => $tong]);
-                exit();
-            } else {
-                header('Content-Type: application/json');
-                echo json_encode(['status' => 'false']);
-                exit();
-            }
-            break;
-       
-        case 'get-max-stock':
-            $id = intval($_POST['id']);
-            // Truy vấn cơ sở dữ liệu để lấy số lượng tồn kho của sản phẩm
-            $sql = "SELECT SoLuong FROM dmsp WHERE id_sp = $id";
-            $result = $link->query($sql);
-
-            if ($result->num_rows > 0) {
-                // Lấy kết quả truy vấn
-                $row = $result->fetch_assoc();
-                $maxStock = $row['stock'];
-                // Trả về kết quả dưới dạng JSON
-                echo json_encode(['maxStock' => $maxStock]);
-            } else {
-                // Trả về lỗi nếu không tìm thấy sản phẩm
-                echo json_encode(['error' => 'Sản phẩm không tồn tại']);
-            }
-            break;
-            case 'check_sl':
-                $productId = $_POST['productId'] ?? 0;
-                $quantityRequested = $_POST['quantity'] ?? 0;
-        
-                // Kiểm tra sản phẩm và hàng tồn kho
-                $stmt = $conn->prepare("SELECT SoLuong FROM dmsp WHERE id_sp = ?");
-                $stmt->bind_param("i", $productId);
-                $stmt->execute();
-                $result = $stmt->get_result();
-                $product = $result->fetch_assoc();
-        
-                if ($product) {
-                    $stockAvailable = $product['SoLuong'];
-                    $available = $quantityRequested <= $stockAvailable;
-        
-                    // Trả về kết quả dưới dạng JSON
-                    echo json_encode(['available' => $available]);
-                } else {
-                    echo json_encode(['available' => false]);
-                }
-        
-                $stmt->close();
-                break;
-        
-            default:
-                // Trả về JSON rỗng nếu action không khớp
-                echo json_encode(['error' => 'Invalid action']);
-                break;
-    }
+if (!$status) {
+    echo json_encode(['status' => 'error', 'message' => 'Không xác định được trạng thái yêu cầu.']);
+    exit;
 }
+
+if (!isset($_SESSION['cart'])) {
+    $_SESSION['cart'] = [];
+}
+
+$cart = &$_SESSION['cart']; // Tham chiếu giỏ hàng
+
+switch ($status) {
+    case 'add_to_cart':
+        $id_sp = isset($_POST['id_sp']) ? (int)$_POST['id_sp'] : 0;
+        $id_dv = isset($_POST['id_dv']) ? (int)$_POST['id_dv'] : 0;
+        $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 1;
+        $max_quantity = isset($_POST['max_quantity']) ? (int)$_POST['max_quantity'] : 0;
+        $price = isset($_POST['price']) ? (float)$_POST['price'] : 0;
+
+        if ($id_sp <= 0 || $id_dv <= 0 || $quantity <= 0 || $quantity > $max_quantity) {
+            error_log("Invalid data: id_sp=$id_sp, id_dv=$id_dv, quantity=$quantity, max_quantity=$max_quantity, price=$price");
+            echo json_encode(['status' => 'error', 'message' => "Dữ liệu không hợp lệ hoặc vượt giới hạn: id_sp=$id_sp, id_dv=$id_dv, quantity=$quantity, max_quantity=$max_quantity, price=$price"]);
+            exit;
+        }
+
+        $found = false;
+
+        foreach ($cart as &$item) {
+            if ($item['id_sp'] === $id_sp && $item['id_dv'] === $id_dv) {
+                if ($item['SoLuong'] + $quantity > $max_quantity) {
+                    echo json_encode(['status' => 'error', 'message' => 'Bạn đã mua số lượng tối đa của sản phẩm này.']);
+                    exit;
+                }
+
+                $item['SoLuong'] += $quantity;
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            $cart[] = [
+                'id_sp' => $id_sp,
+                'id_dv' => $id_dv,
+                'SoLuong' => $quantity,
+                'GiaBan' => $price
+            ];
+        }
+
+        echo json_encode(['status' => 'success', 'message' => 'Sản phẩm đã được thêm vào giỏ hàng.']);
+        exit;
+    case 'del-item':
+        $id_sp = $_POST['id']; // Lấy ID sản phẩm cần xóa
+        $cart = &$_SESSION['cart']; // Giỏ hàng trong session
+
+        // Kiểm tra nếu sản phẩm có tồn tại trong giỏ hàng
+        $found = false;
+        foreach ($cart as $key => $item) {
+            if ($item['id_sp'] == $id_sp) {
+                unset($cart[$key]); // Xóa sản phẩm khỏi giỏ hàng
+                $found = true;
+                break;
+            }
+        }
+
+        // Nếu không tìm thấy sản phẩm trong giỏ hàng
+        if (!$found) {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Không tìm thấy sản phẩm trong giỏ hàng.'
+            ]);
+            exit;
+        }
+
+        // Cập nhật lại tổng tiền
+        $total = 0;
+        foreach ($cart as $item) {
+            $total += $item['SoLuong'] * $item['GiaBan'];
+        }
+
+        // Kiểm tra nếu giỏ hàng trống
+        $cartEmpty = empty($cart);
+
+        // Trả về dữ liệu cho AJAX
+        echo json_encode([
+            'status' => 'success',
+            'total' => $total,
+            'cartEmpty' => $cartEmpty
+        ]);
+        exit;
+        break;
+    default:
+        echo json_encode(['status' => 'error', 'message' => 'Hành động không hợp lệ.']);
+        exit;
+}
+
 if (isset($_POST['payment_method'])) {
     $paymentMethod = $_POST['payment_method'];
 

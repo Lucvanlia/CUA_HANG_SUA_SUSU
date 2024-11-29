@@ -15,7 +15,7 @@ try {
 }
 
 if (!isset($accessToken)) {
-    echo 'Bad request';
+    header("Location: https://banhangviet-tmi.net/doan_php/login-main.php");
     exit;
 }
 
@@ -48,7 +48,7 @@ try {
 }
 
 // Kết nối đến cơ sở dữ liệu và lưu thông tin người dùng
-$conn = new mysqli('localhost', 'root', '', 'banhangviet'); // Thay thông tin database nếu cần
+$conn = new mysqli('localhost', 'root', '', 'susu'); // Thay thông tin database nếu cần
 
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
@@ -60,23 +60,27 @@ $email = $user['email'];
 $profile_pic = $user['picture']['url'];
 
 // Kiểm tra nếu người dùng đã tồn tại
-$sql = "SELECT * FROM khachhang WHERE facebook_id='$facebook_id'";
+$sql = "SELECT id_kh FROM khachhang WHERE Authen_kh='$facebook_id'";
 $result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
-    // Người dùng đã tồn tại    
-    $_SESSION["login-facebook"] = $facebook_id;
-    $_SESSION['message'] = "Đăng nhập thành công";
+    $row = $result->fetch_assoc();
+    // Gán giá trị id_kh vào SESSION
+    $_SESSION["id_user"] = $row['id_kh'];
+    $_SESSION['login_success'] = "Đăng nhập thành công với Facebook";
 } else {
     // Thêm người dùng mới vào database
-    $stmt = $conn->prepare("INSERT INTO khachhang (facebook_id, Ten_KH, email_kh, profile_pic) VALUES (?, ?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO Khachhang (Authen_kh, Ten_kh, Email_kh, Hinh_kh) VALUES (?, ?, ?, ?)");
     $stmt->bind_param("ssss", $facebook_id, $name, $email, $profile_pic);
 
     if ($stmt->execute()) {
         $new_id = $stmt->insert_id; // Lấy id của bản ghi vừa thêm
-        $_SESSION["login-facebook"] = $facebook_id;
-        $_SESSION["name"] = $new_id;
-        $_SESSION['message'] = "Đăng nhập thành công!";
+        $sql = "SELECT id_kh FROM khachhang WHERE id_kh ='$new_id'";
+        $result = $conn->query($sql);
+        $row = $result->fetch_assoc();
+        // Gán giá trị id_kh vào SESSION
+        $_SESSION["id_user"] = $row['id_kh'];
+        $_SESSION['login_success'] = "Đăng nhập thành công với Facebook";
     } else {
         echo 'Error inserting user: ' . $stmt->error;
         exit;
@@ -88,4 +92,3 @@ if ($result->num_rows > 0) {
 $conn->close();
 header("Location: https://banhangviet-tmi.net/doan_php/");
 exit;
-?>

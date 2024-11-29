@@ -1,6 +1,6 @@
 <?php 
 
-    $sql_danhmuc = "SELECT * from loai";
+    $sql_danhmuc = "SELECT * from NhaCungCap";
     $query_danhmuc = mysqli_query( $link, $sql_danhmuc);
 ?>  
 <section class="hero">
@@ -17,7 +17,7 @@
                           while($row = mysqli_fetch_array($query_danhmuc))
                           {
                           ?>
-                            <li><a href="#"><?php echo $row["tenloai"]?></a></li>
+                            <li><a href="#"><?php echo $row["Ten_ncc"]?></a></li>
 
                           <?php 
                           }

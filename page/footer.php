@@ -57,37 +57,48 @@
         });
     });
 
-    // Xóa sản phẩm 
     $(document).ready(function() {
-        $(".cart-del-item").click(function(e) {
-            e.preventDefault();
-            var $button = $(this); // Lưu lại button được click
-            var id = $button.closest("tr").find(".pid").val();
+    $(".cart-del-item").click(function(e) {
+        e.preventDefault();
+        var $button = $(this); // Lưu lại button được click
+        var id = $button.closest("tr").find(".pid").val(); // Lấy id sản phẩm từ input ẩn
 
-            $.ajax({
-                url: 'ajax-process.php',
-                method: 'post',
-                data: {
-                    id: id,
-                    status: 'del-item'
-                },
-                success: function(data) {
-                    if (data.status === "success") {
-                        // alert("Xóa sản phẩm thành công");
+        $.ajax({
+            url: 'ajax-process.php',
+            method: 'post',
+            data: {
+                id: id, // Truyền id sản phẩm
+                status: 'del-item' // Tình trạng xóa sản phẩm
+            },
+            success: function(data) {
+                try {
+                    var response = JSON.parse(data); // Parse dữ liệu trả về
+                    if (response.status === "success") {
                         $button.closest("tr").remove(); // Xóa phần tử tr chứa sản phẩm
 
                         // Cập nhật tổng tiền mới trên giao diện
-                        $("#tong-tien").text(data.total.toLocaleString('vi-VN') + " VNĐ");
+                        $("#tong-tien").text(response.total.toLocaleString('vi-VN') + " VNĐ");
+
+                        // Nếu giỏ hàng trống, hiển thị thông báo
+                        if (response.cartEmpty) {
+                            $(".checkout__order__products").html("<p>Giỏ hàng của bạn hiện đang trống.</p>");
+                        }
                     } else {
-                        alert("Không thể xóa sản phẩm");
+                        alert("Lỗi: " + response.message); // Hiển thị thông báo chi tiết từ máy chủ
                     }
-                },
-                error: function(xhr, status, error) {
-                    console.error("Error: " + error);
+                } catch (e) {
+                    console.error("Error parsing response:", e);
+                    alert("Đã xảy ra lỗi khi xử lý dữ liệu.");
                 }
-            });
+            },
+            error: function(xhr, status, error) {
+                console.error("Error: " + error);
+                alert("Lỗi kết nối với máy chủ.");
+            }
         });
     });
+});
+
 
     // cập nhật số lượng từ input
     $(document).ready(function() {

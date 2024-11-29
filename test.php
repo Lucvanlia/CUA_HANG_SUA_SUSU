@@ -1,48 +1,48 @@
 <?php
-function getFolderInfo($folderPath) {
-    $fileCount = 0;
-    $totalSize = 0;
+// Kết nối cơ sở dữ liệu
+include "admin_test/ketnoi/conndb.php";
+$id_sp = isset($_POST['id_sp']) ? (int)$_POST['id_sp'] : 0;
+if ($id_sp > 0) {
+    // Truy vấn thông tin sản phẩm
+    $sql_sp = "
+        SELECT SP.id_sp, SP.Ten_sp, SP.Hinh_Nen, DG.GiaBan
+        FROM SanPham SP
+        LEFT JOIN DonGia DG ON SP.id_sp = DG.id_sp
+        WHERE SP.id_sp = $id_sp AND SP.HoatDong = 0
+        LIMIT 1";
+    $result_sp = mysqli_query($link, $sql_sp);
+    $sp = mysqli_fetch_assoc($result_sp);
 
-    // Kiểm tra nếu thư mục tồn tại
-    if (is_dir($folderPath)) {
-        $files = scandir($folderPath);
+    // Truy vấn các đơn vị của sản phẩm
+    $sql_donvi = "
+        SELECT DV.Ten_dv, DG.GiaBan,DG.SoLuong,DG.id_dv
+        FROM DonGia DG
+        JOIN DonVi DV ON DG.id_dv = DV.id_dv
+        WHERE DG.id_sp = $id_sp AND DG.HoatDong = 0";
+    $result_donvi = mysqli_query($link, $sql_donvi);
+    $donvi = [];
+    while ($dv = mysqli_fetch_assoc($result_donvi)) {
+        $donvi[] = $dv;
+    }
 
-        // Duyệt qua các file trong thư mục
-        foreach ($files as $file) {
-            // Bỏ qua các thư mục `.` và `..`
-            if ($file != "." && $file != "..") {
-                $filePath = $folderPath . '/' . $file;
-
-                // Kiểm tra nếu là file (không phải là thư mục con)
-                if (is_file($filePath)) {
-                    $fileCount++;
-                    $totalSize += filesize($filePath); // Lấy kích thước file và cộng dồn
-                }
-            }
-        }
+    if ($sp) {
+        // Trả về thông tin sản phẩm và danh sách đơn vị
+        echo json_encode([
+            'status' => 'success',
+            'data' => [
+                'Ten_sp' => $sp['Ten_sp'],
+                'Hinh_Nen' => $sp['Hinh_Nen'],
+                'GiaBan' => $sp['GiaBan'],
+                'donvi' => $donvi // Đơn vị
+            ]
+        ]);
     } else {
-        echo "Thư mục không tồn tại.";
-        return;
+        // Sản phẩm không tồn tại
+        echo json_encode(['status' => 'error', 'message' => 'Sản phẩm không tồn tại.']);
     }
-
-    // Định dạng kích thước để dễ đọc (kB, MB, GB)
-    function formatSize($size) {
-        if ($size >= 1073741824) {
-            return number_format($size / 1073741824, 2) . ' GB';
-        } elseif ($size >= 1048576) {
-            return number_format($size / 1048576, 2) . ' MB';
-        } elseif ($size >= 1024) {
-            return number_format($size / 1024, 2) . ' KB';
-        } else {
-            return $size . ' bytes';
-        }
-    }
-
-    echo "Số lượng file trong thư mục: " . $fileCount . "<br>";
-    echo "Tổng kích thước: " . formatSize($totalSize);
+} else {
+    echo json_encode(['status' => 'error', 'message' => 'ID sản phẩm không hợp lệ.']);
 }
+exit;
+    // Trả về dữ liệu dưới dạng JSON
 
-// Đường dẫn thư mục cần kiểm tra
-$folderPath = 'C:\Intel';
-getFolderInfo($folderPath);
-?>

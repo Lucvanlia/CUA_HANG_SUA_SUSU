@@ -122,19 +122,26 @@
                     <p><strong>Ngày tạo:</strong> ${order.created_at}</p>
                        `;
                     const paymentHTML =
-                        order.ThanhToan == 0 ?
-                        `<span class="status-box bg-success text-white"><i class="fas fa-money-bill-wave"></i> Thanh toán COD</span>` :
                         order.ThanhToan == 1 ?
+                        `<span class="status-box bg-success text-white"><i class="fas fa-money-bill-wave"></i> Thanh toán COD</span>` :
+                        order.ThanhToan == 2 ?
                         `<span class="status-box bg-primary text-white"><i class="fas fa-credit-card"></i> Chuyển khoản</span>` :
                         `<span class="status-box bg-danger text-white"><i class="fas fa-exclamation-triangle"></i> Chưa thanh toán</span>`;
 
                     // Xử lý trạng thái đơn hàng
                     const statusHTML =
-                        order.TrangThai == 0 ?
-                        `<span class="status-box bg-success text-white"><i class="fas fa-check-circle"></i> Đã nhận hàng</span>` :
                         order.TrangThai == 1 ?
-                        `<span class="status-box bg-warning text-black"><i class="fas fa-truck"></i> Đang vận chuyển</span>` :
-                        `<span class="status-box bg-danger text-white"><i class="fas fa-times-circle"></i> Chưa nhận hàng</span>`;
+                        `<span class="status-box bg-success text-white"><i class="fas fa-check-circle"></i> Đã nhận hàng</span>` :
+                        order.TrangThai == 2 ?
+                        `<span class="status-box bg-success text-white"><i class="fas fa-check-circle"></i>Chờ xác nhận</span>` :
+                        order.TrangThai == 3 ?
+                        `<span class="status-box bg-success text-white"><i class="fas fa-check-circle"></i> Đang đóng gói</span>` :
+                        order.TrangThai == 4 ?
+                        `<span class="status-box bg-success text-white"><i class="fas fa-check-circle"></i> Đang vận chuyển</span>` :
+                        order.TrangThai == 5 ?
+                        `<span class="status-box bg-success text-white"><i class="fas fa-check-circle"></i> Yêu cầu hủy đơn</span>` :
+                        order.TrangThai == 6 ?
+                        `<span class="status-box bg-success text-white"><i class="fas fa-check-circle"></i> Xác nhận đơn hủy</span>` :
 
                     // Thêm thông tin thanh toán và trạng thái vào HTML
                     orderInfo += `
@@ -343,16 +350,24 @@
     `;
             data.forEach((row, index) => {
                 const statusHTML =
-                    row.TrangThai == 0 ?
-                    `<span class="status-box bg-success text-white"><i class="fas fa-check-circle"></i> Đã nhận hàng</span>` :
-                    row.TrangThai == 1 ?
-                    `<span class="status-box bg-warning text-black"><i class="fas fa-truck"></i> Đang vận chuyển</span>` :
+                         row.TrangThai == 1 ?
+                        `<span class="status-box bg-success text-white"><i class="fas fa-check-circle"></i> Đã nhận hàng</span>` :
+                         row.TrangThai == 2 ?
+                        `<span class="status-box bg-warning text-white"><i class="fa-solid fa-hourglass-start"></i>Chờ xác nhận</span>` :
+                         row.TrangThai == 3 ?
+                        `<span class="status-box bg-secondary text-white"><i class="fa-solid fa-gift"></i> Đang đóng gói</span>` :
+                         row.TrangThai == 4 ?
+                        `<span class="status-box bg-warning text-black"><i class="fa-solid fa-truck"></i> Đang vận chuyển</span>` :
+                         row.TrangThai == 5 ?
+                        `<span class="status-box bg-danger bg-gradient text-white"><i class="fa-solid fa-xmark"></i> Yêu cầu hủy đơn</span>` :
+                         row.TrangThai == 6 ?
+                        `<span class="status-box bg-success text-white"><i class="fa-solid fa-ban"></i> Xác nhận đơn hủy</span>` :
                     `<span class="status-box bg-danger text-white"><i class="fas fa-times-circle"></i> Chưa nhận hàng</span>`;
 
                 const paymentHTML =
-                    row.ThanhToan == 0 ?
-                    `<span class="status-box bg-success text-white"><i class="fas fa-money-bill-wave"></i> Thanh toán COD</span>` :
                     row.ThanhToan == 1 ?
+                    `<span class="status-box bg-success text-white"><i class="fas fa-money-bill-wave"></i> Thanh toán COD</span>` :
+                    row.ThanhToan == 2 ?
                     `<span class="status-box bg-primary text-white"><i class="fas fa-credit-card"></i> Chuyển khoản</span>` :
                     `<span class="status-box bg-danger text-white"><i class="fas fa-exclamation-triangle"></i> Chưa thanh toán</span>`;
 

@@ -11,18 +11,24 @@
         <div class="checkout__form">
             <div class="col-lg-12 col-md-6 col-">
                 <div class="checkout__order">
-
-
-
                     <div class="checkout__order__products">
                         <table class="table table-hover">
                             <thead>
                                 <tr>
+                                    <style>
+                                        .product-column {
+                                            width: 300px;
+                                            /* Đặt chiều rộng cho cột "Sản phẩm" */
+                                            font-size: 14px;
+                                            /* Thay đổi kích thước chữ */
+                                        }
+                                    </style>
                                     <th scope="col" class="text-left">STT</th>
-                                    <th scope="col" class="text-left">Sản phẩm</th>
+                                    <th scope="col" class="text-left product-column">Sản phẩm</th>
                                     <th scope="col" class="text-center">Ảnh</th>
                                     <th scope="col" class="text-center">Giá</th>
                                     <th scope="col" class="text-center">Số lượng</th>
+                                    <th scope="col" class="text-center">Đơn vị</th> <!-- Cột đơn vị -->
                                     <th scope="col" class="text-right">Thành tiền</th>
                                     <th scope="col" class="text-right">Thao tác</th>
                                 </tr>
@@ -30,35 +36,43 @@
                             <tbody>
                                 <?php
                                 $tong = 0;
-                                if (isset($_SESSION['cart']) && count($_SESSION['cart'])) {
+                                if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0) {
                                     $stt = 1;
                                     foreach ($_SESSION['cart'] as $item) {
-                                        // Kiểm tra xem các phần tử tồn tại hay không
-                                        $gia = isset($item[2]) ? $item[2] : 0;
-                                        $soluong = isset($item[4]) ? $item[4] : 0;
+                                        // Lấy giá, số lượng và tính thành tiền cho sản phẩm
+                                        $gia = $item['GiaBan'];
+                                        $soluong = $item['SoLuong'];
                                         $tt = $gia * $soluong;
+                                        $id_sp =    $item['id_sp'];
+                                        // Truy vấn tên đơn vị từ bảng DonVi dựa trên id_dv
+                                        $id_dv = $item['id_dv'];
+                                        $query_dv = "SELECT Ten_dv FROM DonVi WHERE id_dv = $id_dv";
+                                        $result_dv = mysqli_query($link, $query_dv);
+                                        $row_dv = mysqli_fetch_assoc($result_dv);
+                                        $ten_dv = $row_dv ? $row_dv['Ten_dv'] : 'Không xác định';
+                                        $query_dv = "SELECT * FROM SanPham WHERE id_sp = $id_sp";
+                                        $result_dv = mysqli_query($link, $query_dv);
+                                        $row_dv = mysqli_fetch_assoc($result_dv);
+                                        $ten_sp =  $row_dv ? $row_dv['Ten_sp'] : 'Không xác định';
+                                        $hinh =  $row_dv ? $row_dv['Hinh_Nen'] : 'Không xác định';
+                                        // Hiển thị thông tin sản phẩm
                                 ?>
                                         <tr class="cart-item">
-                                            <input type="hidden" class="pid" value="<?= $item['0'] ?>" name="id" />
+                                            <input type="hidden" class="pid" value="<?= $item['id_sp'] ?>" name="id" />
                                             <input type="hidden" class="status" value="del-item" name="status" />
                                             <th><?= $stt ?></th>
-                                            <th scope="row" class="text-left"><?= $item['1'] ?></th>
+                                            <th scope="row" class="text-left"><?= $ten_sp ?> - <?= $ten_dv ?></th> <!-- Hiển thị tên đơn vị -->
                                             <td class="text-center">
-                                                <img class="img-thumbnail" width="150" height="150" src="<?= $item['3'] ?>" alt="">
+                                                <img class="img-thumbnail" width="150" height="150" src="admin_test/uploads/sanpham/<?= $hinh ?>" alt="Ảnh sản phẩm">
                                             </td>
-                                            <!-- Giá tiền sản phẩm -->
-                                            <td class="text-center"><?= number_format($item['2'], 0, ',', '.') ?> VNĐ</td>
-                                            <!-- Số lượng -->
+                                            <td class="text-center"><?= number_format($gia, 0, ',', '.') ?> VNĐ</td>
                                             <td class="text-center">
-                                                <input style="width: 50px;" type="number" value="<?= $item['4'] ?>" class="text-center quantity" oninput="updateCart()" name="soluong" data-id="<?= $item['0'] ?>" data-price="<?= $item['2'] ?> ">
+                                                <input style="width: 50px;" type="number" value="<?= $soluong ?>" class="text-center quantity" oninput="updateCart()" name="soluong" data-id="<?= $item['id_sp'] ?>" data-price="<?= $gia ?>">
                                             </td>
-                                            <!-- Thành tiền -->
-                                            <td class="text-right" id="total-<?= $item['0'] ?>"><?= number_format($item['2'] * $item['4'], 0, ',', '.') ?> VNĐ</td>
-
-                                            <span class="total-price"></span>
-                                            </td>
+                                            <td class="text-center"><?= $ten_dv ?></td> <!-- Hiển thị tên đơn vị -->
+                                            <td class="text-right" id="total-<?= $item['id_sp'] ?>"><?= number_format($tt, 0, ',', '.') ?> VNĐ</td>
                                             <td class="text-right">
-                                                <button href="#" class="btn btn-warning cart-del-item" style="color: white;" data-id="<?= $item['0'] ?>">
+                                                <button href="#" class="btn btn-warning cart-del-item" style="color: white;" data-id="<?= $item['id_sp'] ?>">
                                                     <i class="fa-regular fa-trash-can"></i> Xóa
                                                 </button>
                                             </td>
@@ -66,32 +80,29 @@
                                 <?php
                                         $tong += $tt;
                                         $stt++;
-                                    } // kết thúc foreach
-                                } // kết thúc if
+                                    }
+                                } else {
+                                    echo '<tr><td colspan="8" class="text-center">Giỏ hàng của bạn trống.</td></tr>';
+                                }
                                 ?>
                             </tbody>
                         </table>
 
-                        <div class="checkout__order__total">Tổng cộng
-                            <span id="tong-tien"><?= isset($_SESSION['tong_tien']) ? number_format($_SESSION['tong_tien'], 0, ',', '.') : 0 ?> VNĐ</span>
-                            <div class="total">
-                            </div>
+                        <div class="checkout__order__total">
+                            Tổng cộng
+                            <span id="tong-tien"><?= number_format($tong, 0, ',', '.') ?> VNĐ</span>
                         </div>
+
                         <?php
-                        if (isset($_SESSION['cart']) && count($_SESSION['cart'])) {
-                            echo '<p class= "text-right"><a  href="index.php?action=cart&query=del-all" class="btn btn-danger">Xóa giỏ hàng</a></p>';
+                        if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0) {
+                            echo '<p class="text-right"><a href="index.php?action=cart&query=del-all" class="btn btn-danger">Xóa giỏ hàng</a></p>';
                         } else {
                             echo '<h4>Hãy mua sắm ngay tại đây</h4>';
                         }
                         ?>
-
-                        
-                        <div class="checkout__input__checkbox">
-
-
-
-                        </div>
                     </div>
+
+                    <!-- Nếu người dùng đã đăng nhập, hiển thị form thanh toán -->
                     <?php
                     if (isset($_SESSION['login-facebook']) || isset($_SESSION["login-google"]) || isset($_SESSION["id_user"])) {
                         echo '<form method="post" id="frmPaying">
@@ -104,53 +115,12 @@
                         echo '<a href="login-main.php">Vui lòng đăng nhập tại đây để thanh toán đơn hàng</a>';
                     }
                     ?>
-
                 </div>
-                
             </div>
         </div>
     </div>
-    </div>
 </section>
+
 <script>
-    function updateCart() {
-        var totalPrice = 0;
 
-        // Lặp qua tất cả các sản phẩm trong giỏ hàng
-        document.querySelectorAll('.cart-item').forEach(function(item) {
-            var quantityInput = item.querySelector('.quantity');
-            var priceText = item.querySelector('td.text-center').textContent.replace(',', ''); // Loại bỏ dấu phẩy
-            var price = parseFloat(priceText);  // Chuyển đổi giá thành số
-            var quantity = parseInt(quantityInput.value);
-
-            // Kiểm tra nếu giá trị không hợp lệ (NaN hoặc không phải số)
-            if (isNaN(price) || isNaN(quantity) || quantity <= 0 || price <= 0) {
-                console.log('Lỗi giá trị: price =', price, 'quantity =', quantity);
-                return; // Nếu giá trị không hợp lệ, bỏ qua và không tính tổng
-            }
-
-            // Tính lại thành tiền cho sản phẩm
-            var itemTotal = price * quantity;
-
-            // Cập nhật thành tiền của sản phẩm
-            item.querySelector('#total-' + quantityInput.getAttribute('data-id')).textContent = itemTotal.toLocaleString(); // Không thêm " VNĐ"
-
-            // Cộng tổng tiền giỏ hàng
-            totalPrice += itemTotal;
-        });
-
-        // Cập nhật tổng tiền giỏ hàng
-        document.getElementById('tong-tien').textContent = totalPrice.toLocaleString(); // Không thêm " VNĐ"
-
-        // Kiểm tra giá trị tổng tiền để debug
-        console.log('Tổng tiền giỏ hàng:', totalPrice);
-    }
-
-    // Gọi hàm updateCart mỗi khi có sự thay đổi số lượng
-    document.querySelectorAll('.quantity').forEach(function(input) {
-        input.addEventListener('input', updateCart);
-    });
 </script>
-
-
-
