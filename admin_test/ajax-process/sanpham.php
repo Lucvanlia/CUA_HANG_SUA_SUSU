@@ -214,7 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
         case 'load':
             // Số sản phẩm mỗi trang
-            $sanPhamMoiTrang = 5;
+            $sanPhamMoiTrang = 10;
 
             // Trang hiện tại
             $trangHienTai = isset($_POST['page']) ? (int)$_POST['page'] : 1;

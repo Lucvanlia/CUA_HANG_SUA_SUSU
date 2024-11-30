@@ -1,8 +1,9 @@
 <?php
+session_start();
 require_once("config_vnpay.php"); // Include VNPAY configuration
 
 // Connect to the database
-$conn = new mysqli("localhost", "root", "", "banhangviet");
+$conn = new mysqli("localhost", "root", "", "susu");
 if ($conn->connect_error) {
     die("Database connection failed: " . $conn->connect_error);
 }
@@ -40,74 +41,114 @@ $secureHash = hash_hmac('sha512', $hashData, $vnp_HashSecret);
 
 // Validate the secure hash
 if ($secureHash === $vnp_SecureHash) {
-    $id_kh = $_SESSION['id_user'];
+    $id_kh = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
     // If the hash is valid, proceed with order processing
     $order_id = $_GET['vnp_TxnRef'];
     $amount = $_GET['vnp_Amount'] / 100;
     $bank_code = $_GET['vnp_BankCode'];
     $time_hd = time();
     // Check if the order already exists
-    $stmt = $conn->prepare("SELECT * FROM hoadon WHERE id_hd = ?");
+    $stmt = $conn->prepare("SELECT * FROM hdb WHERE id_hdb = ?");
     $stmt->bind_param("s", $order_id);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($result->num_rows === 0) {
-        // If the order doesn't exist, insert it into the database
-        // Thêm hóa đơn vào bảng hoadon (thực hiện sau khi trừ kho thành công)
-        $id_khachhang = $_SESSION['id_user'];
-        $ngay_tao = time();
-        $tong_tien = 0;
+        // Nếu đơn hàng chưa tồn tại, tiến hành thêm vào cơ sở dữ liệu
+        $id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
 
-        // Tính tổng tiền
-        foreach ($_SESSION['cart'] as $product_details) {
-            $quantity = $product_details[2];
-            $price = $product_details[4]; // Giả sử giá sản phẩm lưu tại chỉ mục 1
-            $tong_tien += $quantity * $price;
+        // Nếu không có id_user, tạo tài khoản khách hàng mới
+        if (!$id_user) {
+            // Lấy thông tin từ form (người dùng nhập khi thanh toán)
+            $name = $_SESSION['name'];  // Tên khách hàng
+            $email = $_SESSION['email'];  // Email khách hàng
+            $address = $_SESSION['address'];  // Địa chỉ khách hàng
+            $phone = $_SESSION['phone'];  // Số điện thoại khách hàng
+            $image = 'hinh_kh.jpg';  // Hình ảnh mặc định nếu không có hình ảnh khách hàng
+
+            // Kiểm tra email có tồn tại trong bảng KhachHang không
+            $checkEmailQuery = "SELECT * FROM KhachHang WHERE Email_kh = '$email'";
+            $result = mysqli_query($conn, $checkEmailQuery);
+
+            if (mysqli_num_rows($result) > 0) {
+                // Nếu email đã tồn tại, lấy id_kh của khách hàng đó
+                $user = mysqli_fetch_assoc($result);
+                $id_user = $user['id_kh'];
+            } else {
+                // Nếu email chưa tồn tại, tạo tài khoản khách hàng mới
+                $insertCustomer = "INSERT INTO KhachHang (Ten_kh, Email_kh, Dchi_kh, Hinh_kh, HoatDong) 
+                                   VALUES ('$name', '$email', '$address', '$image', 1)";
+                if (mysqli_query($conn, $insertCustomer)) {
+                    $id_user = mysqli_insert_id($conn); // Lấy id_kh của khách hàng mới
+                } else {
+                    echo "Không thể tạo tài khoản mới.";
+                    exit();
+                }
+            }
         }
 
-        $insertOrder = "INSERT INTO hoadon (id_kh,NgayLapHD,TrangThai,pttt,tongtien,thanhtoan,bankcode ) VALUES ($id_khachhang, $ngay_tao,'1','0', $tong_tien,'0','$bank_code')";
-        if (mysqli_query($conn, $insertOrder)) {
-            // Thêm chi tiết hóa đơn
-            $id_hoadon = mysqli_insert_id($conn);
-            foreach ($_SESSION['cart'] as $product_details) {
-                $product_id = $product_details[0];
-                $quantity = $product_details[4];
-                $price = $product_details[2];
+        // Tiến hành thêm hóa đơn và chi tiết hóa đơn
+        mysqli_begin_transaction($conn); // Bắt đầu giao dịch
 
-                $insertDetail = "INSERT INTO ctiethd (id_hd, id_sp, SoLuong, dongia) 
-                                      VALUES ($id_hoadon, $product_id, $quantity, $price)";
+        try {
+            // Tính tổng tiền giỏ hàng
+            $tong_tien = 0;
+            foreach ($_SESSION['cart'] as $item) {
+                $tong_tien += $item['SoLuong'] * $item['GiaBan']; // Tính tổng tiền
+            }
+
+            // Thêm hóa đơn vào bảng HDB
+            $id_nv = 1; // ID nhân viên mặc định, có thể lấy từ session nếu có
+
+            $insertOrder = "INSERT INTO HDB (id_kh, id_nv, TrangThai, ThanhToan ) 
+                            VALUES ($id_user, $id_nv, 1, 1)";
+            if (!mysqli_query($conn, $insertOrder)) {
+                throw new Exception("Không thể thêm hóa đơn.");
+            }
+
+            $id_hdb = mysqli_insert_id($conn); // Lấy ID của hóa đơn vừa tạo
+
+            // Thêm chi tiết hóa đơn vào bảng CT_HDB
+            foreach ($_SESSION['cart'] as $item) {
+                $id_sp = $item['id_sp'];
+                $id_dv = $item['id_dv'];
+                $quantity = $item['SoLuong'];
+                $price = $item['GiaBan'];
+                $thanh_tien = $quantity * $price;
+
+                $insertDetail = "INSERT INTO CT_HDB (id_hdb, id_sp, id_dv, SoLuong, DonGia, ThanhTien) 
+                                 VALUES ($id_hdb, $id_sp, $id_dv, $quantity, $price, $thanh_tien)";
                 if (!mysqli_query($conn, $insertDetail)) {
-                    $success = false;
-                    break;
+                    throw new Exception("Không thể thêm chi tiết hóa đơn cho sản phẩm ID: $id_sp.");
                 }
             }
-            foreach ($_SESSION['cart'] as $product_details) {
-                $product_id = $product_details[0];  // ID sản phẩm
-                $quantity = $product_details[4];    // Số lượng sản phẩm
 
-                // Kiểm tra số lượng tồn kho
-                $query = "SELECT SoLuong FROM dmsp WHERE id_sp = $product_id";
-                $result = mysqli_query($conn, $query);
-                $row = mysqli_fetch_assoc($result);
+            // Commit giao dịch nếu không có lỗi
+            mysqli_commit($conn);
 
-                if ($row['SoLuong'] >= $quantity) {
-                    // Cập nhật số lượng nếu đủ tồn kho
-                    $updateQuery = "UPDATE dmsp SET SoLuong = SoLuong - $quantity WHERE id_sp = $product_id";
-                    if (!mysqli_query($conn, $updateQuery)) {
-                        $success = false;
-                        break;
-                    }
-                    
-                }
-            }
+            // Xóa giỏ hàng sau khi đặt hàng thành công
             unset($_SESSION['cart']);
-            $_SESSION['message'] = 'Đơn hàng của bạn đã được thanh toán';
-            header("Location: https://banhangviet-tmi.net/doan_php/index.php?action=cart&query=view");
+            $_SESSION['tong_tien'] = 0; // Xóa tổng tiền giỏ hàng
+
+            // Trả về kết quả thành công
+            echo "success_vnpay";
+        } catch (Exception $e) {
+            // Rollback nếu có lỗi
+            mysqli_rollback($conn);
+            echo "Lỗi: " . $e->getMessage();
         }
     } else {
-        echo "The order has already been processed.";
+        echo "Phương thức thanh toán không hợp lệ.";
     }
+    // // Nếu mọi thứ thành công
+    // if ($success) {
+    //     unset($_SESSION['cart']);  // Xóa giỏ hàng
+
+    // } else {
+    //     echo "Có lỗi xảy ra trong quá trình xử lý đơn hàng.";
+    // }
+
+
 } else {
     // If the hash is not valid, report an error
     echo "Invalid transaction!<br>";

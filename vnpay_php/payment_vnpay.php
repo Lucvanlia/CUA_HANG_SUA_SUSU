@@ -1,16 +1,25 @@
 <?php
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 
-session_start();
 require_once("config_vnpay.php");
 
+$total = 0;
 // Tính tổng tiền giỏ hàng
-$total = $_SESSION['tong_tien'];
+if (isset($_SESSION['cart']) && count($_SESSION['cart']) > 0) {
+    $stt = 1;
+    foreach ($_SESSION['cart'] as $item) {
+        $gia = $item['GiaBan'];
+        $max_quantity = $item['max_quantity'];
+        $soluong = $item['SoLuong'];
+        $tt = $gia * $soluong;
+        $total += $tt;
+    }
+}
 
 $amount = $total; // Tổng số tiền từ giỏ hàng
 
 if ($amount <= 0) {
-    die('Giỏ hàng rỗng hoặc giá trị không hợp lệ.');
+    die('Giỏ hàng rỗng hoặc giá trị không hợp lệ.' .$amount);
 }
 
 // Tạo mã đơn hàng
@@ -48,4 +57,3 @@ $vnp_Url = $vnp_Url . "?" . $query;
 
 header('Location: ' . $vnp_Url);
 exit();
-?>

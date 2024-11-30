@@ -45,7 +45,7 @@ if (isset($_POST['status_profile']) ||isset($_FILES['Hinh_kh']))  {
         $file = $_FILES['Hinh_kh'];
         $targetDir = "admin_test/modul/uploads/Hinh_kh/"; // Đường dẫn tuyệt đối đến thư mục uploads
         $fileName = basename($file["name"]);
-        $targetFilePath = $targetDir . $fileName;
+        $targetFilePath =  $fileName;
 
         // Di chuyển file vào thư mục
         if (move_uploaded_file($file["tmp_name"], $targetFilePath)) {

@@ -67,7 +67,8 @@ if ($result->num_rows > 0) {
     $row = $result->fetch_assoc();
     // Gán giá trị id_kh vào SESSION
     $_SESSION["id_user"] = $row['id_kh'];
-    $_SESSION['login_success'] = "Đăng nhập thành công với Facebook";
+    $_SESSION['login_success'] = "Đã nhập thành công với Facebook";
+    
 } else {
     // Thêm người dùng mới vào database
     $stmt = $conn->prepare("INSERT INTO Khachhang (Authen_kh, Ten_kh, Email_kh, Hinh_kh) VALUES (?, ?, ?, ?)");

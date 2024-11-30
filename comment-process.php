@@ -1,4 +1,5 @@
 <?php
+
 session_start();
 include "admin_test/ketnoi/conndb.php";
 /* if(isset($_POST['user_id']) && isset($_POST['star']) && isset($_POST['description'])){
@@ -25,9 +26,11 @@ if (isset($_POST['user_id']) && isset($_POST['star']) && isset($_POST['descripti
     $star = $_POST['star'];
     $description = $_POST['description'];
     $created_at = time();
-    $id_sp = $_SESSION['sp-details'] ; 
+    $id_sp = $_POST['id_sp'] ; 
+    $hoatdong = 0 ; 
+    // INSERT INTO `binhluan` (`id_bl`, `id_sp`, `id_kh`, `NoiDung`, `rating`, `Hinh_BL`, `HoatDong`, `created_at`) VALUES (NULL, '107', '18', 'Rất tuyệt', '4', 'maxresdefault.jpg', '0', current_timestamp());
     // Lưu đánh giá vào cơ sở dữ liệu
-    $sql = "INSERT INTO product_feedback (id_kh, rating, comment, created_at,id_sp) VALUES ('$user_id', '$star', '$description', '$created_at','$id_sp')";
+    $sql = "INSERT INTO binhluan (id_kh, rating, NoiDung, id_sp,HoatDong) VALUES ('$user_id', '$star', '$description', '$id_sp','$hoatdong')";
 
     if (mysqli_query($link, $sql)) {
         $feedback_id = mysqli_insert_id($link); // Lấy ID của đánh giá
@@ -41,7 +44,7 @@ if (isset($_POST['user_id']) && isset($_POST['star']) && isset($_POST['descripti
 
                 // Đường dẫn lưu trữ ảnh
                 $target_dir = "admin_test/modul/uploads/";
-                $target_file = $target_dir . basename($file_name);
+                $target_file = basename($file_name);
 
                 if (move_uploaded_file($file_tmp, $target_file)) {
                     $images[] = $target_file; // Lưu đường dẫn
@@ -55,12 +58,12 @@ if (isset($_POST['user_id']) && isset($_POST['star']) && isset($_POST['descripti
             // Nếu có ảnh, cập nhật cơ sở dữ liệu
             if (!empty($images)) {
                 $images_string = implode(',', $images);
-                $update_sql = "UPDATE product_feedback SET images='$images_string' WHERE id='$feedback_id'";
+                $update_sql = "UPDATE binhluan SET Hinh_BL ='$images_string' WHERE id_bl ='$feedback_id'";
                 mysqli_query($link, $update_sql);
             }
         }
 
-        $response['success'] = true; // Đánh giá và ảnh đã lưu thành công
+        $response['success'] = 'success'; // Đánh giá và ảnh đã lưu thành công
     } else {
         $response['error'] = mysqli_error($link);
     }

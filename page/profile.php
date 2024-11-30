@@ -58,7 +58,7 @@ if (isset($_SESSION['id_user']) && $_SESSION['id_user'] != "") {
                 $row = mysqli_fetch_array($result);
             ?>
                 <div class="text-center mb-4">
-                    <?php if ($row["Authen_kh"] <= 0) { ?>
+                    <?php if ($row["Authen_kh"] != "") { ?>
                         <button class="btn btn-primary btn-sm" id="showProfileForm">Thông tin chính</button>
                         <button class="btn btn-success btn-sm" id="showPasswordForm">Đổi mật khẩu</button>
                         <a class="btn btn-success btn-sm" href="?action=profile&query=orders">Lịch sử mua hàng</a>

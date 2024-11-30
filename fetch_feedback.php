@@ -29,8 +29,8 @@ include "admin_test/ketnoi/conndb.php";
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 if (!empty($_GET['id'])) {
     // var_dump($_SESSION['SPdetails']);exit();
-    $sql = "SELECT f.*, u.Ten_KH as Ten_KH ,u.profile_pic as hinh
-        FROM product_feedback f JOIN khachhang u ON f.id_kh = u.id_kh JOIN dmsp ON f.id_sp = dmsp.id_sp
+    $sql = "SELECT f.*, u.Ten_KH as Ten_KH ,u.Hinh_kh , f.Hinh_BL, u.Hinh_kh
+        FROM binhluan f JOIN khachhang u ON f.id_kh = u.id_kh JOIN Sanpham ON f.id_sp = Sanpham.id_sp
         where f.id_sp = '$_GET[id]'
         ORDER BY f.created_at DESC
         ";
@@ -40,7 +40,6 @@ if (!empty($_GET['id'])) {
         while ($row = mysqli_fetch_assoc($result)) {
             // Chuyển đổi timestamp thành ngày tháng tiếng Việt
             $timestamp = $row['created_at'];
-            $formattedDate = date("H:i:s \\n\g\à\y d \\t\h\á\\n\g m \\n\ă\m Y", $timestamp);
 
             // Số sao từ cơ sở dữ liệu
             $starRating = intval($row['rating']); // Giả sử bạn có một cột 'rating' trong bảng feedback
@@ -51,8 +50,8 @@ if (!empty($_GET['id'])) {
 
             // Hiển thị hình đại diện
             echo '<div class="avatar me-3" style="width: 75px; height: 75px; border-radius: 50%; background-color: #7fad39; color: white;display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">';
-            echo '  <a data-fancybox="gallery" href="' . $row['hinh'] . '">
-                    <img src = "' . $row['hinh'] . '"  class="avatar me-3" style="width: 75px; height: 75px; border-radius: 50%; background-color: #7fad39; color: white;display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+            echo '  <a data-fancybox="gallery" href="admin_test\modul\uploads\\' . $row['Hinh_kh'] . '">
+                    <img src = "admin_test\modul\uploads\\' . $row['Hinh_kh'] . '"  class="avatar me-3" style="width: 75px; height: 75px; border-radius: 50%; background-color: #7fad39; color: white;display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
                     </a>
                     '; // Hiển thị ký tự đầu tiên của tên khách hàng
             echo '</div>';
@@ -61,7 +60,7 @@ if (!empty($_GET['id'])) {
             echo '<div class="flex-grow-1 ">';
             echo '<h6 class="d-flex justify-content-between">';
             echo '<span style="color: white" >' . $row['Ten_KH'] . '</span>';
-            echo '<span  style="color: white">' . $formattedDate . '</span>';
+            echo '<span  style="color: white">' . $row['created_at'] . '</span>';
             echo '</h6>';
 
             // Hiển thị đánh giá sao
@@ -76,16 +75,16 @@ if (!empty($_GET['id'])) {
             echo '</div>';
 
             // Hiển thị nội dung bình luận
-            echo '<p style=" color: white">' . $row['comment'] . '</p>';
+            echo '<p style=" color: white">' . $row['NoiDung'] . '</p>';
 
             // Hiển thị hình ảnh (nếu có)
-            $images = explode(',', $row['images']); // Tách chuỗi thành mảng
-            if (!empty($row['images'])) { // Kiểm tra xem chuỗi hình ảnh có rỗng không
+            $images = explode(',', $row['Hinh_BL']); // Tách chuỗi thành mảng
+            if (!empty($row['Hinh_BL'])) { // Kiểm tra xem chuỗi hình ảnh có rỗng không
                 echo '<div class="feedback-images d-flex flex-wrap">';
                 foreach ($images as $image) {
                     if (!empty($image)) { // Kiểm tra xem từng hình ảnh có rỗng không
-                        echo '<a data-fancybox="gallery" href="admin_test/modul/uploads/' . htmlspecialchars($image) . '">
-                            <img src="admin_test/modul/uploads/' . htmlspecialchars($image) . '" alt="feedback image" class="img-thumbnail" style="width:100px; height:100px; object-fit:cover; margin-right: 5px; margin-bottom: 5px;">
+                        echo '<a data-fancybox="gallery" href="admin_test\modul\uploads\\'.htmlspecialchars($image).'">
+                            <img src="admin_test\modul\uploads\\'.htmlspecialchars($image).'" alt="feedback image" class="img-thumbnail" style="width:100px; height:100px; object-fit:cover; margin-right: 5px; margin-bottom: 5px;">
                           </a>';
                     }
                 }

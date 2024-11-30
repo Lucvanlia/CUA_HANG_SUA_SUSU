@@ -71,8 +71,9 @@ switch ($status) {
         }
 
         echo json_encode(['status' => 'success', 'message' => 'Sản phẩm đã được thêm vào giỏ hàng.']);
-            exit();
-            break;
+        exit();
+        break;
+
     case 'del-item':
         $id_sp = $_POST['id']; // Lấy ID sản phẩm cần xóa
         $cart = &$_SESSION['cart']; // Giỏ hàng trong session
@@ -113,90 +114,226 @@ switch ($status) {
         ]);
         exit;
         break;
-    case 'update-cart':
-        $productId = $_POST['id'];
-        $quantity = $_POST['quantity'];
-        $cart = &$_SESSION['cart'];
-
-        // Lấy số lượng tối đa của sản phẩm (ví dụ, từ cơ sở dữ liệu)
-        // Ở đây tôi giả sử bạn có một hàm hoặc biến chứa thông tin tồn kho
-        $max_quantity = getMaxQuantityFromDatabase($productId); // Hàm lấy tồn kho sản phẩm
-
-        // Kiểm tra nếu số lượng yêu cầu lớn hơn tồn kho
-        if ($quantity > $max_quantity) {
-            echo json_encode([
-                'status' => 'error',
-                'message' => 'Số lượng vượt quá tồn kho'
-            ]);
-            exit;
-        }
-
-        // Kiểm tra nếu sản phẩm tồn tại trong giỏ hàng
-        $found = false;
-        foreach ($cart as &$item) {
-            if ($item['id_sp'] == $productId) {
-                $item['SoLuong'] = $quantity; // Cập nhật số lượng sản phẩm
-                $found = true;
-                break;
+        case 'update-quantity':
+            // Nhận dữ liệu từ AJAX
+            $id_sp = isset($_POST['id_sp']) ? (int) $_POST['id_sp'] : 0;
+            $id_dv = isset($_POST['id_dv']) ? (int) $_POST['id_dv'] : 0;
+            $quantity = isset($_POST['quantity']) ? (int) $_POST['quantity'] : 1;
+        
+            // Kiểm tra dữ liệu đầu vào
+            if ($id_sp <= 0 || $id_dv <= 0 || $quantity < 1) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Dữ liệu không hợp lệ.'
+                ]);
+                exit;
             }
-        }
-
-        if ($found) {
-            // Tính lại tổng tiền
+        
+            // Kết nối database
+            include_once 'config.php'; // Cập nhật đường dẫn file cấu hình
+            $query = "SELECT SoLuong FROM DonGia WHERE id_sp = ? AND id_dv = ? AND HoatDong = 0";
+            $stmt = $link->prepare($query);
+            $stmt->bind_param("ii", $id_sp, $id_dv);
+            $stmt->execute();
+            $stmt->bind_result($max_quantity);
+            $stmt->fetch();
+            $stmt->close();
+        
+            // Kiểm tra tồn kho
+            if (!$max_quantity) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Không tìm thấy sản phẩm hoặc đơn vị đo.'
+                ]);
+                exit;
+            }
+        
+            if ($quantity > $max_quantity) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Số lượng vượt quá tồn kho!'
+                ]);
+                exit;
+            }
+        
+            // Kiểm tra giỏ hàng trong session
+            if (!isset($_SESSION['cart']) || !is_array($_SESSION['cart'])) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Giỏ hàng rỗng hoặc không tồn tại.'
+                ]);
+                exit;
+            }
+        
+            // Cập nhật giỏ hàng
+            $subtotal = 0;
             $total = 0;
-            foreach ($cart as $item) {
-                $total += $item['SoLuong'] * $item['GiaBan'];
-            }
-
-            // Cập nhật tổng tiền vào session
-            $_SESSION['tong_tien'] = $total;
-
-            echo json_encode([
-                'status' => 'success',
-                'total' => $total
-            ]);
-        } else {
-            echo json_encode([
-                'status' => 'error',
-                'message' => 'Không tìm thấy sản phẩm trong giỏ hàng.'
-            ]);
-        }
-        // Hàm lấy số lượng tồn kho từ cơ sở dữ liệu (giả sử bạn đã có bảng hoặc dữ liệu tồn kho)
-        function getMaxQuantityFromDatabase($productId)
-        {
-            function getMaxQuantityFromDatabase($productId) {
-                // Kết nối tới cơ sở dữ liệu (giả sử bạn đã có kết nối ở đâu đó)
-                global $$link; // $$link là biến kết nối của bạn, nếu dùng PDO hoặc MySQLi
-            
-                // Truy vấn SQL để lấy số lượng tồn kho của sản phẩm
-                $sql = "SELECT SoLuong FROM DonGia WHERE id_sp = ?";
-                
-                // Sử dụng prepared statement để tránh SQL Injection
-                if ($stmt = $$link->prepare($sql)) {
-                    // Gắn giá trị cho parameter
-                    $stmt->bind_param("i", $productId);
-                    
-                    // Thực thi câu lệnh
-                    $stmt->execute();
-                    
-                    // Lấy kết quả
-                    $stmt->bind_result($maxQuantity);
-                    $stmt->fetch();
-                    
-                    // Đóng statement
-                    $stmt->close();
-                    
-                    // Trả về số lượng tối đa tồn kho
-                    return $maxQuantity;
-                } else {
-                    // Nếu có lỗi, trả về giá trị mặc định là 0
-                    return 0;
+            $found = false;
+            foreach ($_SESSION['cart'] as &$item) {
+                if ($item['id_sp'] == $id_sp && $item['id_dv'] == $id_dv) {
+                    $item['SoLuong'] = $quantity;
+                    $item['ThanhTien'] = $quantity * $item['GiaBan'];
+                    $subtotal = $item['ThanhTien']; // Thành tiền sản phẩm
+                    $found = true;
+                    break;
                 }
             }
+        
+            // Nếu không tìm thấy sản phẩm trong giỏ hàng
+            if (!$found) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Sản phẩm không tồn tại trong giỏ hàng.'
+                ]);
+                exit;
+            }
+        
+            // Tính tổng tiền toàn bộ giỏ hàng
+            $total = array_sum(array_map(function ($item) {
+                return $item['ThanhTien'];
+            }, $_SESSION['cart']));
+        
+            // Trả về JSON phản hồi
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Cập nhật số lượng thành công.',
+                'subtotal' => number_format($subtotal, 0, ',', '.') . " VNĐ",
+                'total' => number_format($total, 0, ',', '.') . " VNĐ"
+            ]);
+            exit;
+        
+            case 'get-user-info':
+                if (isset($_POST['id_user'])) {
+                    $id_user = (int) $_POST['id_user'];
             
-        }
-
-        exit;
+                    // Kết nối database và lấy thông tin người dùng
+                    $query = "SELECT Ten_kh, Email_kh, SDT_kh, Dchi_kh FROM KhachHang WHERE id_kh = ?";
+                    $stmt = $link->prepare($query);
+                    $stmt->bind_param("i", $id_user);
+                    $stmt->execute();
+                    $stmt->bind_result($name, $email, $phone, $address);
+                    $stmt->fetch();
+                    $stmt->close();
+            
+                    if ($name) {
+                        echo json_encode([
+                            'status' => 'success',
+                            'name' => $name,
+                            'email' => $email,
+                            'phone' => $phone,
+                            'address' => $address
+                        ]);
+                    } else {
+                        echo json_encode([
+                            'status' => 'success',
+                            'name' => '',
+                            'email' => '',
+                            'phone' => '',
+                            'address' => ''
+                        ]);
+                    }
+                }
+                exit;
+                case'Check-Out':                
+                // Lấy phương thức thanh toán từ form
+                $paymentMethod = $_POST['payment_method']; // 'cod' hoặc 'vnpay'
+                
+                if ($paymentMethod === 'cod') {
+                    // Kiểm tra người dùng có đăng nhập chưa (nếu có id_user trong session)
+                    $id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
+                    
+                    // Nếu không có id_user, tạo tài khoản khách hàng mới
+                    if (!$id_user) {
+                        // Lấy thông tin từ form (người dùng nhập khi thanh toán)
+                        $name = $_POST['name'];  // Tên khách hàng
+                        $email = $_POST['email'];  // Email khách hàng
+                        $address = $_POST['address'];  // Địa chỉ khách hàng
+                        $phone = $_POST['phone'];  // Số điện thoại khách hàng
+                        $image = 'hinh_kh.jpg';  // Hình ảnh mặc định nếu không có hình ảnh khách hàng
+                
+                        // Kiểm tra email có tồn tại trong bảng KhachHang không
+                        $checkEmailQuery = "SELECT * FROM KhachHang WHERE Email_kh = '$email' and SDT_kh = '$phone'";
+                        $result = mysqli_query($link, $checkEmailQuery);
+                
+                        if (mysqli_num_rows($result) > 0) {
+                            // Nếu email đã tồn tại, lấy id_kh của khách hàng đó
+                            $user = mysqli_fetch_assoc($result);
+                            $id_user = $user['id_kh'];
+                        } else {
+                            // Nếu email chưa tồn tại, tạo tài khoản khách hàng mới
+                            $insertCustomer = "INSERT INTO KhachHang (Ten_kh, Email_kh, Dchi_kh, Hinh_kh, HoatDong) 
+                                               VALUES ('$name', '$email', '$address', '$image', 1)";
+                            if (mysqli_query($link, $insertCustomer)) {
+                                $id_user = mysqli_insert_id($link); // Lấy id_kh của khách hàng mới
+                            } else {
+                                echo "Không thể tạo tài khoản mới.";
+                                exit();
+                            }
+                        }
+                    }
+                
+                    // Tiến hành thêm hóa đơn và chi tiết hóa đơn
+                    mysqli_begin_transaction($link); // Bắt đầu giao dịch
+                
+                    try {
+                        // Tính tổng tiền giỏ hàng
+                        $tong_tien = 0;
+                        foreach ($_SESSION['cart'] as $item) {
+                            $tong_tien += $item['SoLuong'] * $item['GiaBan']; // Tính tổng tiền
+                        }
+                
+                        // Thêm hóa đơn vào bảng HDB
+                        $id_nv = 1; // ID nhân viên mặc định, có thể lấy từ session nếu có
+                
+                        $insertOrder = "INSERT INTO HDB (id_kh, id_nv, TrangThai, ThanhToan ) 
+                                        VALUES ($id_user, $id_nv, 1, 1)";
+                        if (!mysqli_query($link, $insertOrder)) {
+                            throw new Exception("Không thể thêm hóa đơn.");
+                        }
+                
+                        $id_hdb = mysqli_insert_id($link); // Lấy ID của hóa đơn vừa tạo
+                
+                        // Thêm chi tiết hóa đơn vào bảng CT_HDB
+                        foreach ($_SESSION['cart'] as $item) {
+                            $id_sp = $item['id_sp'];
+                            $id_dv = $item['id_dv'];
+                            $quantity = $item['SoLuong'];
+                            $price = $item['GiaBan'];
+                            $thanh_tien = $quantity * $price;
+                
+                            $insertDetail = "INSERT INTO CT_HDB (id_hdb, id_sp, id_dv, SoLuong, DonGia, ThanhTien) 
+                                             VALUES ($id_hdb, $id_sp, $id_dv, $quantity, $price, $thanh_tien)";
+                            if (!mysqli_query($link, $insertDetail)) {
+                                throw new Exception("Không thể thêm chi tiết hóa đơn cho sản phẩm ID: $id_sp.");
+                            }
+                        
+                        }
+                        unset($_SESSION['cart']);
+                        $_SESSION['tong_tien'] = 0; // Xóa tổng tiền giỏ hàng
+                        // Commit giao dịch nếu không có lỗi
+                        mysqli_commit($link);
+                
+                        // Xóa giỏ hàng sau khi đặt hàng thành công
+                      
+                        // Trả về kết quả thành công
+                        echo $paymentMethod === 'cod' ? "success_cod" : "Không thể thanh toán";
+                
+                    } catch (Exception $e) {
+                        // Rollback nếu có lỗi
+                        mysqli_rollback($link);
+                        echo "Lỗi: " . $e->getMessage();
+                    }
+                } else {
+                    $_SESSION['name'] = $_POST['name'];  // Tên khách hàng
+                    $_SESSION['email'] = $_POST['email'];  // Email khách hàng
+                    $_SESSION['address']= $_POST['address'];  // Địa chỉ khách hàng
+                    $_SESSION['phone'] = $_POST['phone'];  // Số điện thoại khách hàng
+                    $image = 'hinh_kh.jpg';  // Hình ảnh mặc định nếu không có hình ảnh khách hàng
+                    echo "success_vnpay";
+                }
+                
+         exit;
+            
         break;
     default:
         echo json_encode(['status' => 'error', 'message' => 'Hành động không hợp lệ.']);
@@ -284,3 +421,4 @@ if (isset($_POST['payment_method'])) {
         echo "success_vnpay";
     }
 }
+
