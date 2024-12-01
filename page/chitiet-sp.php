@@ -58,9 +58,11 @@ $images = explode(',', $sp['Hinh_ChiTiet']);
                     <div class="product__details__quantity">
 
                         </br>
-                        <input type="number" id="quantity" class="form-control mt-2 mb-4" value="1" min="1" max="<?php echo $donvi[0]['SoLuong']; ?>">
                     </div>
-                    <select name="donvi" id="donvi" class="form-select mt-2 mb-4">
+                    <label for="">Số lượng mua</label>
+                    <input type="number" id="quantity" class="form-control mt-2 mb-4"  style="width: 120px;" value="1" min="1" max="<?php echo $donvi[0]['SoLuong']; ?>">
+                    <label for="">Lựa chọn kích thước mua</label>
+                    <select name="donvi" id="donvi" class="form-select mt-2 mb-4" style="width: 300px;"> 
                         <?php if (!empty($donvi)): ?>
                             <?php foreach ($donvi as $dv): ?>
                                 <option

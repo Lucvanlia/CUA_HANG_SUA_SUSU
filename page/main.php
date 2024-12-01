@@ -54,7 +54,14 @@ elseif (isset($_GET['action']) && $_GET['action'] == 'details' && isset($_GET['i
             }
         } elseif ($tam == 'checkout' && $tam1 == 'checkout') {
             include_once "cart.php";
-        }elseif ($tam == 'blog' && $tam1 == 'all') {
+        }
+        elseif ($tam == 'lienhe' && $tam1 == 'them') {
+            include_once "page/lienhe.php";
+        }
+        elseif ($tam == 'donhang' && $tam1 == 'them') {
+            include_once "page/check-donhang.php";
+        }
+        elseif ($tam == 'blog' && $tam1 == 'all') {
             include_once "page/Blogs_List.php";
             // ?action=blog&query=all
         } elseif ($tam == 'cart' && $tam1 == 'test') {

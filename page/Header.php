@@ -9,7 +9,7 @@
         text-decoration: none !important;
     }
  </style>
- <?php var_dump($_SESSION['id_user'])?>
+ <!-- <?php var_dump($_SESSION['id_user'])?> -->
 <div class="humberger__menu__overlay"></div>
 <div class="humberger__menu__wrapper">
     <div class="humberger__menu__logo">
@@ -174,18 +174,16 @@
             <div class="col-lg-6">
                 <nav class="header__menu">
                     <ul>
-                        <li class="active"><a href="/doan_php">Home</a></li>
-                        <li><a href="?action=product&query=all">Shop</a></li>
-                        <li><a href="#">Pages</a>
+                        <li class="active"><a href="/doan_php">TRANG CHỦ</a></li>
+                        <li><a href="?action=product&query=all">SẢN PHẨM</a></li>
+                        <li><a href="#">TIPS</a>
                             <ul class="header__menu__dropdown">
-                                <li><a href="./shop-details.html">Shop Details</a></li>
-                                <li><a href="?action=cart&query=view">Giỏ hàng</a></li>
-                                <li><a href="?action=cart-view&query=cart-view">Check Out</a></li>
-                                <li><a href="./blog-details.html">Blog Details</a></li>
+                            <li><a href="?action=lienhe&query=them">Liên hệ</a></li>
+                            <li><a href="?action=donhang&query=them">Tìm đơn hàng</a></li>
+                            <li><a href="./blog-details.html">bài viết</a></li>
                             </ul>
                         </li>
-                        <li><a href="?action=cart&query=view">Cart</a></li>
-                        <li><a href="./contact.html">Contact</a></li>
+                        <li><a href="?action=cart&query=view">Giỏ hàng</a></li>
                     </ul>
                 </nav>
             </div>
@@ -201,7 +199,8 @@
                         </li>
                     </ul>
 
-                    <div class="header__cart__price">item: <span>$150.00</span></div>
+                    <div class="header__cart__price" >                           
+                    </div>
                 </div>
             </div>
         </div>

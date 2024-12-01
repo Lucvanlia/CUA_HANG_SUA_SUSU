@@ -1,50 +1,34 @@
 <!-- Swiper CSS -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css">
 
+<?php 
+
+    $sql_dmlist   ="SELECT * FROM DanhMuc where parent_dm != 0  ";
+    $query_dmlist = mysqli_query($link,$sql_dmlist);
+?>
 <!-- Swiper JS -->
 <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
 <div class="swiper mySwiper">
     <div class="swiper-wrapper">
+        <?php 
+                while($row_dmlist = mysqli_fetch_array($query_dmlist))
+                {
+
+        ?>
+        <a href="?action=product&query=all&id_dm=<?= $row_dmlist['id_dm']?>">
         <!-- Card 1 -->
         <div class="swiper-slide text-center p-3">
             <div class="card test ">
                 <div class="card-body">
-                    <i class="bi bi-shop" style="font-size: 4rem;"></i>
-                    <h5 class="card-title mt-3">Nhà cung cấp A</h5>
-                    <p class="card-text">Cung cấp sản phẩm ABC</p>
+                    <img src="admin_test/uploads/<?= $row_dmlist['Hinh_dm']?>" alt="">
+                    <h5 class="card-title mt-3"><?= $row_dmlist['Ten_dm']?></h5>
                 </div>
             </div>
         </div>
         <!-- Card 2 -->
-        <div class="swiper-slide text-center p-3">
-            <div class="card test ">
-                <div class="card-body">
-                    <i class="bi bi-basket3" style="font-size: 4rem;"></i>
-                    <h5 class="card-title mt-3">Nhà cung cấp B</h5>
-                    <p class="card-text">Cung cấp sản phẩm XYZ</p>
-                </div>
-            </div>
-        </div>
-        <!-- Card 3 -->
-        <div class="swiper-slide text-center p-3">
-            <div class="card test ">
-                <div class="card-body">
-                    <i class="bi bi-truck" style="font-size: 4rem;"></i>
-                    <h5 class="card-title mt-3">Nhà cung cấp C</h5>
-                    <p class="card-text">Cung cấp sản phẩm DEF</p>
-                </div>
-            </div>
-        </div>
-        <!-- Card 4 -->
-        <div class="swiper-slide text-center p-3">
-            <div class="card test ">
-                <div class="card-body">
-                    <i class="bi bi-building" style="font-size: 4rem;"></i>
-                    <h5 class="card-title mt-3">Nhà cung cấp D</h5>
-                    <p class="card-text">Cung cấp sản phẩm GHI</p>
-                </div>
-            </div>
-        </div>
+        </a>
+        <?php 
+                }
+        ?>
     </div>
 </div>
 <style>
@@ -61,7 +45,9 @@
     border-radius: 8px;
     background-color: #fff;
 }
-
+.test img{
+    width: 150px;
+}
 .test i {
     color: #007bff;
 }
@@ -81,3 +67,9 @@
         slidesPerGroupAuto: true, // Di chuyển từng nhóm
     });
 </script>
+<!-- Thêm CSS Swiper -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.css">
+
+<!-- Thêm JavaScript Swiper -->
+<script src="https://cdn.jsdelivr.net/npm/swiper/swiper-bundle.min.js"></script>
+
