@@ -212,68 +212,71 @@
         });
     });
 </script>
-
+<?php var_dump($_SESSION['cart'])?>
 <script>
-    $(document).on("click", "#btnCheckOut", function() {
-        // Ẩn giỏ hàng
-        $("#cart-table").hide();
+$(document).on("click", "#btnCheckOut", function() {
+    // Ẩn giỏ hàng
+    $("#cart-table").hide();
 
-        // Hiển thị form thanh toán
-        $("#checkout-form").show();
+    // Hiển thị form thanh toán
+    $("#checkout-form").show();
 
-        // Kiểm tra xem người dùng đã đăng nhập chưa (có tồn tại id_user trong session)
-        var userId = <?= isset($_SESSION['id_user']) ? $_SESSION['id_user'] : 'null'; ?>;
-
-        if (userId) {
-            // Lấy thông tin người dùng từ bảng KhachHang và điền vào form
-            $.ajax({
-                url: 'ajax-process.php',
-                method: 'post',
-                data: {
-                    status: 'get-user-info',
-                    id_user: userId
-                },
-                success: function(response) {
-                    var data = JSON.parse(response);
-                    if (data.status === 'success') {
-                        // Điền thông tin vào form
-                        $('#name').val(data.name);
-                        $('#email').val(data.email);
-                        $('#phone').val(data.phone);
-                        $('#address').val(data.address);
-                    } else {
-                        alert('Không thể lấy thông tin người dùng.');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error("Error: " + error);
+    // Kiểm tra xem người dùng đã đăng nhập chưa (có tồn tại id_user trong session)
+    var userId = <?= isset($_SESSION['id_user']) ? $_SESSION['id_user'] : 'null'; ?>;
+    
+    if (userId) {
+        // Lấy thông tin người dùng từ bảng KhachHang và điền vào form
+        $.ajax({
+            url: 'ajax-process.php',
+            method: 'post',
+            data: {
+                status: 'get-user-info',
+                id_user: userId
+            },
+            success: function(response) {
+                var data = JSON.parse(response);
+                if (data.status === 'success') {
+                    // Điền thông tin vào form
+                    $('#name').val(data.name);
+                    $('#email').val(data.email);
+                    $('#phone').val(data.phone);
+                    $('#address').val(data.address);
+                } else {
+                    alert('Không thể lấy thông tin người dùng.');
                 }
-            });
-        }
-
-        // Hiển thị thông tin sản phẩm đã mua
-        var cart = <?= json_encode($_SESSION['cart']); ?>;
-        var productList = '';
-        var totalPrice = 0;
-
-        cart.forEach(function(item) {
-            var lineThrough = item.GiaBan * item.SoLuong;
-            <?php
-            $query_dv = "SELECT * FROM SanPham WHERE id_sp = $id_sp";
-            $result_dv = mysqli_query($link, $query_dv);
-            $row_dv = mysqli_fetch_assoc($result_dv);
-            $ten_sp =  $row_dv ? $row_dv['Ten_sp'] : 'Không xác định';
-            ?>
-            productList += `<li><?= $ten_sp ?> - Số lượng: ${item.SoLuong} - <span>${item.GiaBan} VNĐ</span> - Thành tiền: ${lineThrough} VNĐ</li>`;
-            totalPrice += lineThrough;
+            },
+            error: function(xhr, status, error) {
+                console.error("Error: " + error);
+            }
         });
+    }
+    
+    // Hiển thị thông tin sản phẩm đã mua
+    var cart = <?= json_encode($_SESSION['cart']); ?>;
+    var productList = '';
+    var totalPrice = 0;
 
-        $('#product-list').html(productList);
-
-        // Hiển thị tổng tiền
-        $('#total-price').text(totalPrice.toLocaleString() + " VNĐ");
-        $('#TienGio').text(totalPrice.toLocaleString() + " VNĐ");
+    // Lặp qua giỏ hàng để hiển thị sản phẩm
+    cart.forEach(function(item) {
+        var lineThrough = item.GiaBan * item.SoLuong;
+        productList += `<tr>
+            <td>${item.Ten_sp}</td>
+            <td>${item.SoLuong}</td>
+            <td>${item.GiaBan.toLocaleString()} VNĐ</td>
+            <td>${lineThrough.toLocaleString()} VNĐ</td>
+        </tr>`;
+        totalPrice += lineThrough;
     });
+
+    // Thêm các sản phẩm vào bảng giỏ hàng
+    $('#cart-items').html(productList);
+
+    // Hiển thị tổng tiền
+    $('#total-price').text(totalPrice.toLocaleString() + " VNĐ");
+});
+
+
+
 
 
     $(document).on("change", ".quantity", function() {

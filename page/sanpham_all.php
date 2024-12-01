@@ -13,10 +13,17 @@ $orderBy = '';
 
 // Truy vấn sản phẩm dựa vào danh mục
 $sql = "
-    SELECT SP.id_sp, SP.Ten_sp, SP.Hinh_Nen, DG.GiaBan 
-    FROM SanPham SP
-    JOIN DonGia DG ON SP.id_sp = DG.id_sp
-    WHERE SP.HoatDong = 0 
+   SELECT 
+    SP.id_sp, 
+    SP.Ten_sp, 
+    SP.Hinh_Nen, 
+    MIN(DG.GiaBan) AS GiaBan 
+   FROM 
+    SanPham SP
+   JOIN 
+    DonGia DG ON SP.id_sp = DG.id_sp
+   WHERE 
+    SP.HoatDong = 0 
 ";
 
 // Nếu có danh mục, lọc sản phẩm theo danh mục
@@ -24,9 +31,18 @@ if ($category_id > 0) {
     $sql .= " AND SP.id_dm = $category_id";
 }
 
+$sql .= "
+   GROUP BY 
+    SP.id_sp, SP.Ten_sp, SP.Hinh_Nen
+   ORDER BY 
+    MAX(DG.GiaBan) DESc
+";
+
 // Thêm phân trang
 $sql .= " LIMIT $limit OFFSET $offset";
+
 $result = mysqli_query($link, $sql);
+
 if ($sortOrder == 'asc') {
     $sql .= " AND SP.id_dm = $category_id ORDER BY dg.GiaBan ASC";
     // $orderBy = 'ORDER BY dg.GiaBan ASC';
@@ -45,11 +61,14 @@ $total_products = $total_row['total'];
 $total_pages = ceil($total_products / $limit);
 
 ?>
+
 <div class="container-fluid">
     <div class="row">
         <!-- Cột bên trái: Danh mục -->
         <div class="col-md-2">
             <h5>Danh mục</h5>
+            <input type="text" id="searchQuery" placeholder="Nhập tên sản phẩm" class="form-control">
+            <button id="btnSearch" class="btn btn-primary mt-3">Tìm kiếm</button>
             <ul class="list-group" id="category-list">
                 <?php
                 // Hàm hiển thị danh mục cha và con
@@ -58,7 +77,7 @@ $total_pages = ceil($total_products / $limit);
                     foreach ($categories as $category) {
                         if ($category['parent_dm'] == $parentId) {
                             echo '<li class="list-group-flush " style="list-style-type:none">';
-                            echo '<a href="javascript:void(0)" class="category-item" data-category="' . $category['id_dm'] . '">';
+                            echo '<a href="javascript:void(0)" class="category-item parent_cha" data-category="' . $category['id_dm'] . '">';
                             echo '';
                             echo $category['Ten_dm'] . ' ';
                             echo '</a>';
@@ -69,7 +88,7 @@ $total_pages = ceil($total_products / $limit);
                             });
 
                             if (count($children) > 0) {
-                                echo '<ul class="list-group ms-3 collapse" id="child-' . $category['id_dm'] . '">';
+                                echo '<ul class="list-group ms-3 collapse" id="child-' . $category['id_dm'] . '" data-category="' . $category['id_dm'] . '">';
                                 renderCategories($categories, $category['id_dm']);
                                 echo '</ul>';
                             }
@@ -98,10 +117,10 @@ $total_pages = ceil($total_products / $limit);
 
         <div class="col-md-10 container-fluid" id="list-sanpham">
             <div class="d-flex justify-content-end mb-3">
-                <select id="sort-by-price" class="form-select w-auto">
+                <select id="SapXepGia" class="form-select w-auto">
                     <option value="default" selected>Sắp xếp</option>
-                    <option value="asc">Giá: Thấp đến Cao</option>
-                    <option value="desc">Giá: Cao đến Thấp</option>
+                    <option data-sort="asc" value="asc">Giá: Thấp đến Cao</option>
+                    <option data-sort="asc" value="desc">Giá: Cao đến Thấp</option>
                 </select>
             </div>
             <div class="row">
@@ -175,19 +194,78 @@ $total_pages = ceil($total_products / $limit);
                 }
             });
         });
+        $('.parent_cha').on('click', function() {
+            var categoryId = $(this).data('category');
+            $('#list-sanpham').hide();
+            // Hiệu ứng toggle sổ xuống danh mục con
+            $('#child-' + categoryId).collapse('toggle');
+
+            // Gửi yêu cầu AJAX để load sản phẩm
+            $.ajax({
+                url: 'fetch_products.php',
+                type: 'GET',
+                data: {
+                    category_id: categoryId
+                },
+                success: function(response) {
+
+                    $('#product-list').html(response);
+                },
+                error: function() {
+                    alert('Không thể load sản phẩm. Vui lòng thử lại!');
+                }
+            });
+        });
+        $('#SapXepGia').on('change', function() {
+            var SapXepGia = $(this).val(); // Lấy giá trị sắp xếp
+            $('#list-sanpham').hide(); // Ẩn danh sách sản phẩm trong khi load
+
+            // Gửi yêu cầu AJAX
+            $.ajax({
+                url: 'fetch_products.php', // File PHP xử lý yêu cầu
+                type: 'GET',
+                data: {
+                    SapXepGia: SapXepGia // Gửi giá trị sắp xếp
+                },
+                success: function(response) {
+                    $('#product-list').html(response).fadeIn(); // Hiển thị lại sản phẩm
+                },
+                error: function() {
+                    alert('Không thể load sản phẩm. Vui lòng thử lại!');
+                }
+            });
+        });
     });
-    document.getElementById('sort-by-price').addEventListener('change', function () {
-    const sortOrder = this.value; // Lấy giá trị sắp xếp (asc hoặc desc)
 
-    // Gửi yêu cầu AJAX để lấy danh sách sản phẩm đã sắp xếp
-    fetch(`index.php?action=product&query=all&sort=${sortOrder}`)
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('list-sanpham').innerHTML = data;
-        })
-        .catch(error => console.error('Error:', error));
-});
+    $(document).ready(function() {
+        // Xử lý tìm kiếm
+        $('#btnSearch').on('click', function() {
+            var query = $('#searchQuery').val(); // Lấy giá trị tìm kiếm
+            $('#list-sanpham').hide(); // Ẩn danh sách cũ trong khi load
 
+            // Gửi yêu cầu AJAX để tìm kiếm
+            $.ajax({
+                url: 'fetch_products123.php', // File xử lý tìm kiếm
+                type: 'GET',
+                data: {
+                    query: query // Gửi từ khóa tìm kiếm
+                },
+                success: function(response) {
+                    $('#product-list').html(response).fadeIn(); // Hiển thị kết quả
+                },
+                error: function() {
+                    alert('Không thể tìm kiếm sản phẩm. Vui lòng thử lại!');
+                }
+            });
+        });
+
+        // Tìm kiếm khi người dùng nhấn Enter
+        $('#searchQuery').on('keypress', function(e) {
+            if (e.which == 13) { // 13 là mã phím Enter
+                $('#btnSearch').click();
+            }
+        });
+    });
 </script>
 
 <style>
@@ -393,7 +471,8 @@ $total_pages = ceil($total_products / $limit);
     a:hover {
         color: #7fad39 !important;
     }
-</style><script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</style>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
 <!-- Bootstrap CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">

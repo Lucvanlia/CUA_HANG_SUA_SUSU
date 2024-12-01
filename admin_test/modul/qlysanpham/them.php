@@ -176,7 +176,6 @@
             // Áp dụng định dạng số cho giá bán
             $(".gia-ban").on('input', function() {
                 let value = this.value.replace(/\D/g, ''); // Chỉ giữ lại số
-                value = Number(value).toLocaleString(); // Định dạng số với dấu phân tách nghìn
                 this.value = value;
             });
 

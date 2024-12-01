@@ -22,15 +22,15 @@ header('Content-Type: application/json'); // Đảm bảo phản hồi là JSON
 $response = array('success' => false); // Khởi tạo phản hồi mặc định
 
 if (isset($_POST['user_id']) && isset($_POST['star']) && isset($_POST['description'])) {
-    $user_id = $_POST['user_id'];
-    $star = $_POST['star'];
-    $description = $_POST['description'];
-    $created_at = time();
-    $id_sp = $_POST['id_sp'] ; 
-    $hoatdong = 0 ; 
-    // INSERT INTO `binhluan` (`id_bl`, `id_sp`, `id_kh`, `NoiDung`, `rating`, `Hinh_BL`, `HoatDong`, `created_at`) VALUES (NULL, '107', '18', 'Rất tuyệt', '4', 'maxresdefault.jpg', '0', current_timestamp());
+    $user_id = mysqli_real_escape_string($link, $_POST['user_id']);
+    $star = intval($_POST['star']);
+    $description = mysqli_real_escape_string($link, $_POST['description']);
+    $id_sp = intval($_POST['id_sp']);
+    $hoatdong = 0;
+
     // Lưu đánh giá vào cơ sở dữ liệu
-    $sql = "INSERT INTO binhluan (id_kh, rating, NoiDung, id_sp,HoatDong) VALUES ('$user_id', '$star', '$description', '$id_sp','$hoatdong')";
+    $sql = "INSERT INTO binhluan (id_kh, rating, NoiDung, id_sp, HoatDong) 
+            VALUES ('$user_id', '$star', '$description', '$id_sp', '$hoatdong')";
 
     if (mysqli_query($link, $sql)) {
         $feedback_id = mysqli_insert_id($link); // Lấy ID của đánh giá
@@ -38,18 +38,24 @@ if (isset($_POST['user_id']) && isset($_POST['star']) && isset($_POST['descripti
         // Xử lý upload hình ảnh
         if (!empty($_FILES['file'])) {
             $images = [];
+            $target_dir = "admin_test/modul/uploads/";
+
+            // Tạo thư mục nếu chưa tồn tại
+            if (!is_dir($target_dir)) {
+                mkdir($target_dir, 0777, true);
+            }
+
             foreach ($_FILES['file']['tmp_name'] as $key => $tmp_name) {
                 $file_name = $_FILES['file']['name'][$key];
                 $file_tmp = $_FILES['file']['tmp_name'][$key];
 
-                // Đường dẫn lưu trữ ảnh
-                $target_dir = "admin_test/modul/uploads/";
-                $target_file = basename($file_name);
+                // Đường dẫn lưu trữ đầy đủ
+                $target_file = $target_dir . basename($file_name);
 
                 if (move_uploaded_file($file_tmp, $target_file)) {
                     $images[] = $target_file; // Lưu đường dẫn
                 } else {
-                    $response['error'] = 'Không thể tải ảnh lên.';
+                    $response['error'] = "Không thể tải ảnh lên: {$file_name}.";
                     echo json_encode($response);
                     exit();
                 }
@@ -63,12 +69,13 @@ if (isset($_POST['user_id']) && isset($_POST['star']) && isset($_POST['descripti
             }
         }
 
-        $response['success'] = 'success'; // Đánh giá và ảnh đã lưu thành công
+        $response['success'] = 'Đánh giá đã được lưu thành công.';
     } else {
-        $response['error'] = mysqli_error($link);
+        $response['error'] = 'Lỗi cơ sở dữ liệu: ' . mysqli_error($link);
     }
 } else {
     $response['error'] = 'Thiếu dữ liệu cần thiết.';
 }
 
-echo json_encode($response); // Trả về JSON hợp lệ
+echo json_encode($response);
+

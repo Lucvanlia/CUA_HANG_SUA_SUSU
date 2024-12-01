@@ -3,7 +3,7 @@ include "admin_test/ketnoi/conndb.php";
 
 if (isset($_GET['category_id'])) {
     $categoryId = intval($_GET['category_id']);
-
+    
     // Lấy sản phẩm theo danh mục
     $sql_products = "
         SELECT sp.*, dm.Ten_dm, ncc.Ten_ncc, xx.Ten_xx,DG.GiaBan

@@ -31,13 +31,14 @@ if (!empty($_GET['id'])) {
     // var_dump($_SESSION['SPdetails']);exit();
     $sql = "SELECT f.*, u.Ten_KH as Ten_KH ,u.Hinh_kh , f.Hinh_BL, u.Hinh_kh
         FROM binhluan f JOIN khachhang u ON f.id_kh = u.id_kh JOIN Sanpham ON f.id_sp = Sanpham.id_sp
-        where f.id_sp = '$_GET[id]'
+        where f.id_sp = '$_GET[id]' and f.HoatDong = 0
         ORDER BY f.created_at DESC
         ";
     $result = mysqli_query($link, $sql);
 
     if (mysqli_num_rows($result) > 0) {
         while ($row = mysqli_fetch_assoc($result)) {
+           
             // Chuyển đổi timestamp thành ngày tháng tiếng Việt
             $timestamp = $row['created_at'];
 
@@ -76,15 +77,15 @@ if (!empty($_GET['id'])) {
 
             // Hiển thị nội dung bình luận
             echo '<p style=" color: white">' . $row['NoiDung'] . '</p>';
-
+            
             // Hiển thị hình ảnh (nếu có)
             $images = explode(',', $row['Hinh_BL']); // Tách chuỗi thành mảng
             if (!empty($row['Hinh_BL'])) { // Kiểm tra xem chuỗi hình ảnh có rỗng không
                 echo '<div class="feedback-images d-flex flex-wrap">';
                 foreach ($images as $image) {
                     if (!empty($image)) { // Kiểm tra xem từng hình ảnh có rỗng không
-                        echo '<a data-fancybox="gallery" href="admin_test\modul\uploads\\'.htmlspecialchars($image).'">
-                            <img src="admin_test\modul\uploads\\'.htmlspecialchars($image).'" alt="feedback image" class="img-thumbnail" style="width:100px; height:100px; object-fit:cover; margin-right: 5px; margin-bottom: 5px;">
+                        echo '<a data-fancybox="gallery" href="'.htmlspecialchars($image).'">
+                            <img src="'.htmlspecialchars($image).'" alt="feedback image" class="img-thumbnail" style="width:100px; height:100px; object-fit:cover; margin-right: 5px; margin-bottom: 5px;">
                           </a>';
                     }
                 }

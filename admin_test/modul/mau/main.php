@@ -19,6 +19,9 @@
     } elseif ($tam == 'timkiem' && $tam1 == 'timkiem') {
         include "modul/mau/timkiem.php";
     }
+    elseif ($tam == 'binhluan' && $tam1 == 'them') {
+        include "modul/qlybinhluan/lietke.php";
+    }
     // kt trang chat lieu 
 
     //============Trang hang =================

@@ -102,6 +102,8 @@
                         <h6 class="collapse-header">Quản lý:</h6>
                         <a class="collapse-item"  href="index.php?action=quanlynhanvien&query=them">Nhân viên </a>
                         <a class="collapse-item"  href="index.php?action=quanlykhachhang&query=them">Khách hàng </a>
+                        <a class="collapse-item"  href="index.php?action=binhluan&query=them">Bình Luận </a>
+
                     </div>
                 </div>
                 

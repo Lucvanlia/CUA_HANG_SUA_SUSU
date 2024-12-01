@@ -65,7 +65,7 @@ if (isset($_SESSION['id_user']) && $_SESSION['id_user'] != "") {
                     <?php } else { ?>
                         <button class="btn btn-primary btn-sm" id="showProfileForm">Thông tin chính</button>
                         <button class="btn btn-success btn-sm" id="showPasswordForm">Đổi mật khẩu</button>
-                        <button class="btn btn-danger btn-sm" id="showEmailVerificationForm">Xác minh email</button>
+                        <a class="btn btn-success btn-sm" href="?action=profile&query=orders">Lịch sử mua hàng</a>
                     <?php } ?>
                 </div>
 

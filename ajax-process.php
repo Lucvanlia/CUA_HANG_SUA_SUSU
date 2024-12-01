@@ -286,7 +286,7 @@ switch ($status) {
                         $id_nv = 1; // ID nhân viên mặc định, có thể lấy từ session nếu có
                 
                         $insertOrder = "INSERT INTO HDB (id_kh, id_nv, TrangThai, ThanhToan ) 
-                                        VALUES ($id_user, $id_nv, 1, 1)";
+                                        VALUES ($id_user, $id_nv, 6, 3)";
                         if (!mysqli_query($link, $insertOrder)) {
                             throw new Exception("Không thể thêm hóa đơn.");
                         }

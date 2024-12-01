@@ -101,7 +101,7 @@ if ($secureHash === $vnp_SecureHash) {
             $id_nv = 1; // ID nhân viên mặc định, có thể lấy từ session nếu có
 
             $insertOrder = "INSERT INTO HDB (id_kh, id_nv, TrangThai, ThanhToan ) 
-                            VALUES ($id_user, $id_nv, 1, 1)";
+                            VALUES ($id_user, $id_nv, 6, 2)";
             if (!mysqli_query($conn, $insertOrder)) {
                 throw new Exception("Không thể thêm hóa đơn.");
             }
@@ -132,6 +132,8 @@ if ($secureHash === $vnp_SecureHash) {
 
             // Trả về kết quả thành công
             echo "success_vnpay";
+            $_SESSION['login_success'] = "Chúc mưng bạn thanh toán thành công VNPAY";
+            header("location:https://banhangviet-tmi.net/doan_php/");
         } catch (Exception $e) {
             // Rollback nếu có lỗi
             mysqli_rollback($conn);

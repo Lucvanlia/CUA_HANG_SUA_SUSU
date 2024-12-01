@@ -265,6 +265,124 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
 
 
+            case 'edit':
+                // Phản hồi trả về
+                $response = [];
+                $id_sp = $_POST['id_sp'] ?? null; // ID sản phẩm
+        
+                // Kiểm tra ID sản phẩm
+                if (!$id_sp) {
+                    echo json_encode(['status' => 'error', 'message' => 'ID sản phẩm không hợp lệ.']);
+                    exit;
+                }
+        
+                // Lấy dữ liệu từ form
+                $ten_sp = $_POST['Ten_sp'] ?? '';
+                $mo_ta = $_POST['MoTa_sp'] ?? '';
+                $id_dm = $_POST['id_dm'] ?? 0;
+                $id_xx = $_POST['id_xx'] ?? 0;
+                $id_ncc = $_POST['id_ncc'] ?? 0;
+                $Hinh_Nen = null; // Ảnh đại diện
+                $sizes = $_POST['sizes'] ?? []; // Dữ liệu kích thước
+        
+                $target_dir = "../uploads/sanpham/";
+        
+                // Tạo thư mục nếu chưa tồn tại
+                if (!is_dir($target_dir)) {
+                    mkdir($target_dir, 0755, true);
+                }
+        
+                // Bắt đầu transaction
+                mysqli_begin_transaction($link);
+        
+                try {
+                    // Cập nhật bảng DonGia (kích thước và giá)
+                    if (!empty($sizes['GiaBan'])) {
+                        $checkedSizes = []; // Lưu kích thước đã xử lý
+        
+                        foreach ($sizes['GiaBan'] as $key => $giaBan) {
+                            $soLuong = $sizes['SoLuong'][$key] ?? 0;
+                            $giaNhap = $sizes['GiaNhap'][$key] ?? 0.0;
+                            $trangthai = $sizes['TrangThai'][$key] ?? 1; // Mặc định: hoạt động
+                            $dv = $sizes['Size1'][$key] ?? 0;
+        
+                            // Kiểm tra kích thước trùng lặp
+                            if (in_array($dv, $checkedSizes)) {
+                                throw new Exception("Kích thước bị trùng. Vui lòng nhập các kích thước khác nhau.");
+                            }
+        
+                            $checkedSizes[] = $dv;
+        
+                            // Cập nhật bảng DonGia
+                            $updateSql = "UPDATE DonGia 
+                                          SET GiaNhap = ?, GiaBan = ?, SoLuong = ?, HoatDong = ? 
+                                          WHERE id_sp = ? AND id_dv = ?";
+                            $updateStmt = $link->prepare($updateSql);
+        
+                            if (!$updateStmt) {
+                                throw new Exception("Lỗi chuẩn bị SQL: " . $link->error);
+                            }
+        
+                            $updateStmt->bind_param("iddiii", $giaNhap, $giaBan, $soLuong, $trangthai, $id_sp, $dv);
+        
+                            if (!$updateStmt->execute()) {
+                                throw new Exception("Lỗi cập nhật DonGia: " . $updateStmt->error);
+                            }
+                        }
+                    }
+        
+                    // Xử lý ảnh đại diện
+                    if (isset($_FILES['Hinh_Nen']) && $_FILES['Hinh_Nen']['error'] === UPLOAD_ERR_OK) {
+                        $file_name = uniqid() . "_" . basename($_FILES['Hinh_Nen']['name']);
+                        $target_file = $target_dir . $file_name;
+        
+                        if (!move_uploaded_file($_FILES['Hinh_Nen']['tmp_name'], $target_file)) {
+                            throw new Exception("Không thể tải ảnh đại diện.");
+                        }
+                        $Hinh_Nen = $file_name;
+                    }
+        
+                    // Cập nhật bảng SanPham
+                    if (empty($Hinh_Nen)) {
+                        $query = "UPDATE SanPham 
+                                  SET Ten_sp = ?, MoTa_sp = ?, id_dm = ?, id_xx = ?, id_ncc = ? 
+                                  WHERE id_sp = ?";
+                        $stmt = $link->prepare($query);
+                        $stmt->bind_param("ssiiii", $ten_sp, $mo_ta, $id_dm, $id_xx, $id_ncc, $id_sp);
+                    } else {
+                        $query = "UPDATE SanPham 
+                                  SET Ten_sp = ?, MoTa_sp = ?, id_dm = ?, id_xx = ?, id_ncc = ?, Hinh_Nen = ? 
+                                  WHERE id_sp = ?";
+                        $stmt = $link->prepare($query);
+                        $stmt->bind_param("ssiiiss", $ten_sp, $mo_ta, $id_dm, $id_xx, $id_ncc, $Hinh_Nen, $id_sp);
+                    }
+        
+                    if (!$stmt->execute()) {
+                        throw new Exception("Lỗi cập nhật sản phẩm: " . $stmt->error);
+                    }
+        
+                    // Commit transaction
+                    mysqli_commit($link);
+        
+                    // Phản hồi thành công
+                    $response['status'] = 'success';
+                    $response['message'] = 'Cập nhật sản phẩm thành công.';
+                } catch (Exception $e) {
+                    // Rollback nếu có lỗi
+                    mysqli_rollback($link);
+        
+                    $response['status'] = 'error';
+                    $response['message'] = $e->getMessage();
+                }
+        
+                // Trả về JSON
+                echo json_encode($response);
+                exit;
+                break;
+
+
+
+
         case 'toggle_status':
             $id_ncc = $_POST['id'] ?? 0;
             $newStatus = $_POST['status'] ?? 0;
