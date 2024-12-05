@@ -160,7 +160,18 @@
             <li class="nav-item dropdown no-arrow">
                 <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <span class="mr-2 d-none d-lg-inline text-gray-600 small">Douglas McGee</span>
+                    <span class="mr-2 d-none d-lg-inline text-gray-600 small">
+
+                    <?php 
+                            if(isset($_SESSION['id_login']))
+                            {
+                                $sql_tk = "SELECT * FROM nhanvien where id_nv =  ".$_SESSION['id_login'] ;
+                                $query_tk = mysqli_query($link,$sql_tk);
+                                $row_tk = mysqli_fetch_assoc($query_tk);
+                                echo $row_tk['Ten_nv'];
+                            }
+                    ?>
+                    </span>
                     <img class="img-profile rounded-circle"
                         src="img/undraw_profile.svg">
                 </a>

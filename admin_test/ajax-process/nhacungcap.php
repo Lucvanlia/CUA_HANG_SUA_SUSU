@@ -226,7 +226,7 @@ function hienThiNhaCungCap($danhSachNCC)
                 <td>' . $name . '</td>
                 <td>
                     ' . (!empty($hinh)
-            ? '<img src="uploads/nhacungcap/' . $hinh . '" style="width: 100px; height: 100px; object-fit: cover;" />'
+            ? '<img src="uploads/nhacungcap/' . $hinh . '" style="width: 100%; height: 100px; object-fit: cover;" />'
             : 'Không có hình'
         ) . '
                 </td>

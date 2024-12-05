@@ -1,4 +1,5 @@
 <?php
+session_start();
 ob_start(); // Bắt đầu bộ đệm
 
 
@@ -26,10 +27,17 @@ ob_start(); // Bắt đầu bộ đệm
 <body>
     <div class="wrapper">
         <?php
-        include "ketnoi/conndb.php";
-        include "modul/mau/slidebar.php";
-        include "modul/mau/header.php";
-        include "modul/mau/main.php";
+                if(isset($_SESSION['id_login']))
+                {
+                    include "ketnoi/conndb.php";
+                    include "modul/mau/slidebar.php";
+                    include "modul/mau/header.php";
+                    include "modul/mau/main.php";
+                }
+                else
+                {
+                    include_once"Login-Main.php";
+                }
         ?>
     </div>
 

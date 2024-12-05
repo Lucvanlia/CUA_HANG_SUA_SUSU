@@ -268,6 +268,8 @@
                         } else {
                             $('#editImagePreview').hide();
                         }
+                        $('#editProductModal').modal('show');
+
 
                         // Gửi yêu cầu để lấy danh sách kích thước sản phẩm (nếu có)
                         $.ajax({

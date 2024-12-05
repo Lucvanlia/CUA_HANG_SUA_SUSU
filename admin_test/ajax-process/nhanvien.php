@@ -12,8 +12,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $phone = isset($_POST['phone']) ? mysqli_real_escape_string($link, $_POST['phone']) : '';
 
             // Tạo mật khẩu ngẫu nhiên
-            $password = substr(str_shuffle('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 10);
-            $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+            // $password = substr(str_shuffle('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), 0, 10);
+            $password="123";
+            $hashedPassword = hash('sha256', $password);
             $token = bin2hex(random_bytes(50)); // 50 byte x 2 = 100 ký tự
             // Thêm người dùng vào cơ sở dữ liệu
             // Kiểm tra nếu tên nhà cung cấp không để trống
@@ -47,7 +48,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     echo json_encode($response);
                     exit();
                 }
+                $queryCheck = "SELECT  SDT_nv  FROM Nhanvien WHERE Email_nv = ?";
+                $stmt = $link->prepare($queryCheck);
+                $stmt->bind_param("s", $email);
+                $stmt->execute();
+                $stmt->store_result();
 
+                if ($stmt->num_rows > 0) {
+                    $response = [
+                        'message' => 'Email này đã được sử dụng',
+                        'status' => 'error'
+                    ];
+                    echo json_encode($response);
+                    exit();
+                }
                 // Thêm nhân viênvào database
                 $hoatdong = 0;
                 $query = "INSERT INTO Nhanvien (Ten_nv, Email_nv,NgaySinh_nv,Mk_nv,Hoatdong,SDT_nv) VALUES (?, ?, ?,  ?,?,?)";
@@ -56,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                 if ($stmt->execute()) {
                     $response = [
-                        'message' => 'Thêm nhân viênthành công!',
+                        'message' => 'Thêm nhân viên thành công!'.$password,
                         'status' => 'success'
                     ];
                 } else {

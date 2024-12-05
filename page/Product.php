@@ -21,7 +21,7 @@
 
                                 ?>
                                     <li>
-                                        <a style="color: #fff !important;" href="category.php?id=<?= $id_dm_con ?>" title="<?= $ten_dm_con ?>"><?= $ten_dm_con ?></a>
+                                        <a style="color: #fff !important;" href="?action=product&query=all&category_id=<?= $id_dm_con ?>" title="<?= $ten_dm_con ?>"><?= $ten_dm_con ?></a>
                                     </li>
                                 <?php } ?>
                             </ul>
@@ -29,7 +29,7 @@
                             <!-- Hình nhà cung cấp -->
                             <div class="block-vendor mt-3 ">
                                 <?php
-                                $sql_ncc = "SELECT DISTINCT NCC.Hinh_ncc 
+                                $sql_ncc = "SELECT DISTINCT NCC.Hinh_ncc ,NCC.id_ncc
                                             FROM NhaCungCap NCC
                                             JOIN SanPham SP ON NCC.id_ncc = SP.id_ncc
                                             WHERE SP.id_dm IN (SELECT id_dm FROM DanhMuc WHERE parent_dm = 102) 
@@ -39,7 +39,7 @@
                                 while ($ncc = mysqli_fetch_assoc($result_ncc)) {
                                     $hinh_ncc = $ncc['Hinh_ncc'];
                                 ?>
-                                    <a href="#">
+                                    <a href="https://banhangviet-tmi.net/doan_php/?action=product&query=all&id_ncc=<?= $ncc['id_ncc'] ?>">
                                         <img src="admin_test/uploads/nhacungcap/<?= $hinh_ncc ?>" alt="Nhà cung cấp" class="rounded-circle" style="width: 100px; height: 50px; object-fit: cover;">
                                     </a>
                                 <?php } ?>
@@ -181,7 +181,7 @@
 
                                 ?>
                                     <li>
-                                        <a style="color: #fff !important;" href="category.php?id=<?= $id_dm_con ?>" title="<?= $ten_dm_con ?>"><?= $ten_dm_con ?></a>
+                                        <a style="color: #fff !important;" href="?action=product&query=all&category_id=<?= $id_dm_con ?>" title="<?= $ten_dm_con ?>"><?= $ten_dm_con ?></a>
                                     </li>
                                 <?php } ?>
                             </ul>
@@ -230,7 +230,7 @@
                             <!-- Danh mục con -->
                             <ul class="list-unstyled block-cate">
                                 <?php
-                                $sql_dm_con = "SELECT id_dm, Ten_dm FROM DanhMuc WHERE parent_dm = 102 AND Hoatdong = 0";
+                                $sql_dm_con = "SELECT id_dm, Ten_dm FROM DanhMuc WHERE parent_dm = 107 AND Hoatdong = 0";
                                 $result_dm_con = mysqli_query($link, $sql_dm_con);
 
                                 while ($dm_con = mysqli_fetch_assoc($result_dm_con)) {
@@ -239,7 +239,7 @@
 
                                 ?>
                                     <li>
-                                        <a style="color: #fff !important;" href="category.php?id=<?= $id_dm_con ?>" title="<?= $ten_dm_con ?>"><?= $ten_dm_con ?></a>
+                                    <a style="color: #fff !important;" href="?action=product&query=all&category_id=<?= $id_dm_con ?>" title="<?= $ten_dm_con ?>"><?= $ten_dm_con ?></a>
                                     </li>
                                 <?php } ?>
                             </ul>
@@ -418,12 +418,16 @@
 
     /* Hiệu ứng zoom cho ảnh sản phẩm */
     .zoom-on-hover {
-        transition: transform 0.3s ease, filter 0.3s ease; /* Chuyển động mượt mà */
+        transition: transform 0.3s ease, filter 0.3s ease;
+        /* Chuyển động mượt mà */
     }
 
     .zoom-on-hover:hover {
-        transform: scale(1.1); /* Zoom ảnh lên 10% */
-    filter: brightness(1.1); /* Tăng độ sáng nhẹ */    }
+        transform: scale(1.1);
+        /* Zoom ảnh lên 10% */
+        filter: brightness(1.1);
+        /* Tăng độ sáng nhẹ */
+    }
 
     /* Canh chỉnh danh mục con */
     .block-cate ul {

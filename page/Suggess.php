@@ -14,7 +14,7 @@
                 {
 
         ?>
-        <a href="?action=product&query=all&id_dm=<?= $row_dmlist['id_dm']?>">
+        <a href="https://banhangviet-tmi.net/doan_php/?action=product&query=all&category_id=<?= $row_dmlist['id_dm']?>">
         <!-- Card 1 -->
         <div class="swiper-slide text-center p-3">
             <div class="card test ">

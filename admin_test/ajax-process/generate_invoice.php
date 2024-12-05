@@ -45,11 +45,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pdf->AddPage();
 
     // Chèn hình ảnh cửa hàng vào tiêu đề
-    $pdf->Image('../uploads/a1-1-350x250.jpg', 10, 6, 30); // Đường dẫn, tọa độ X, Y, chiều rộng (cao tự động theo tỷ lệ)
+    $pdf->Image('../uploads/susu.jpg', 10, 6, 30); // Đường dẫn, tọa độ X, Y, chiều rộng (cao tự động theo tỷ lệ)
     
     // Thêm tên cửa hàng
     $pdf->SetFont('DejaVu', '', 16);
-    $pdf->Cell(0, 10, 'Cửa Hàng XYZ', 0, 1, 'C');
+    $pdf->Cell(0, 10, 'Cửa Hàng Sữa SuSu', 0, 1, 'C');
     $pdf->SetFont('DejaVu', '', 14);
     $pdf->Cell(0, 10, 'Hóa Đơn Mua Hàng', 0, 1, 'C');
     $pdf->Ln(20);
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pdf->Ln(5);
 
     // Thêm bảng chi tiết sản phẩm vào PDF
-    $pdf->SetFont('DejaVu', '', 14);
+    $pdf->SetFont('DejaVu', '', 11);
 
     // Thêm nền cho hàng tiêu đề
     $pdf->SetFillColor(200, 220, 255); // Màu nền tiêu đề
@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
        $cellHeight = 10; // Chiều cao mặc định của dòng
    
        // Tính chiều cao thực tế của dòng dựa trên MultiCell
-       $pdf->SetFont('DejaVu', '', 14);
+       $pdf->SetFont('DejaVu', '', 9);
        $pdf->SetXY($startX + 15, $startY); // Di chuyển đến vị trí của cột tên sản phẩm
        $pdf->MultiCell(60, $cellHeight, $item['Ten_sp'], 0, 'L', false);
        $currentY = $pdf->GetY();
