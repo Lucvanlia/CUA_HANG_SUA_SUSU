@@ -123,7 +123,21 @@
                 </div>
                 
             </li>
-        
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUtilities12"
+                    aria-expanded="true" aria-controls="collapseUtilities12">
+                    <i class="fas fa-fw fa-wrench"></i>
+                    <span>Khuyến mãi</span>
+                </a>
+                <div id="collapseUtilities12" class="collapse" aria-labelledby="headingUtilities"
+                    data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Quản lý:</h6>
+                        <a class="collapse-item"  href="index.php?action=quanlykhuyenmai&query=them">Khuyễn mãi </a>
+                    </div>
+                </div>
+                
+            </li>
             <!-- Divider -->
             <hr class="sidebar-divider">
 
