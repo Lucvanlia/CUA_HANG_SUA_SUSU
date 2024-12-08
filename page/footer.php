@@ -299,7 +299,7 @@ $(document).on("click", "#btnCheckOut", function() {
                     var data = JSON.parse(response);
                     if (data.status === "success") {
                         // alert(data.message);
-                        location.reload();
+                        // location.reload();
                         $("#total-" + id_sp).text(data.subtotal);
                         $("#tong-tien").text(data.total);
                     } else {
@@ -403,6 +403,32 @@ $(document).on("click", "#btnCheckOut", function() {
             });
         });
     });
+    $(document).ready(function () {
+    // Hàm cập nhật số lượng sản phẩm trong giỏ hàng
+    function updateCartCount() {
+        $.ajax({
+            url: 'Dem-sanpham.php', // Đường dẫn đến API
+            method: 'GET',
+            dataType: 'json',
+            success: function (response) {
+                // Hiển thị số lượng sản phẩm
+                $('#order-count').text(response.count || 0);
+            },
+            error: function () {
+                console.error("Không thể lấy số lượng sản phẩm trong giỏ hàng.");
+            }
+        });
+    }
+
+    // Gọi hàm ngay khi trang được load
+    updateCartCount();
+
+    // Tùy chỉnh: Nếu bạn có các sự kiện thêm/xóa sản phẩm, gọi lại hàm này
+    $(document).on('cart-updated', function () {
+        updateCartCount();
+    });
+});
+
 </script><!-- jQuery (phải được tải trước Bootstrap) -->
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
