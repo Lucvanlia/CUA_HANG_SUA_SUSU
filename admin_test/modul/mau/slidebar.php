@@ -70,6 +70,7 @@
                         <a class="collapse-item" href="index.php?action=quanlyloai&query=them">Loại</a>
                         <a class="collapse-item" href="index.php?action=quanlydiadiem&query=them">Địa điểm</a>
                         <a class="collapse-item" href="index.php?action=quanlytintuc&query=them">Tin Tức</a>
+                        <a class="collapse-item" href="index.php?action=quanlybaiviet&query=them">Bài Viết</a>
                     </div>
                 </div>
             </li>

@@ -241,7 +241,7 @@ switch ($status) {
                 if ($paymentMethod === 'cod') {
                     // Kiểm tra người dùng có đăng nhập chưa (nếu có id_user trong session)
                     $id_user = isset($_SESSION['id_user']) ? $_SESSION['id_user'] : null;
-                    
+                    $id_ctkm = isset($_SESSION['km']) ? $_SESSION['km'] : '0';
                     // Nếu không có id_user, tạo tài khoản khách hàng mới
                     if (!$id_user) {
                         // Lấy thông tin từ form (người dùng nhập khi thanh toán)
@@ -281,12 +281,11 @@ switch ($status) {
                         foreach ($_SESSION['cart'] as $item) {
                             $tong_tien += $item['SoLuong'] * $item['GiaBan']; // Tính tổng tiền
                         }
-                
                         // Thêm hóa đơn vào bảng HDB
                         $id_nv = 1; // ID nhân viên mặc định, có thể lấy từ session nếu có
                 
-                        $insertOrder = "INSERT INTO HDB (id_kh, id_nv, TrangThai, ThanhToan ) 
-                                        VALUES ($id_user, $id_nv, 6, 3)";
+                        $insertOrder = "INSERT INTO HDB (id_kh, id_nv, TrangThai, ThanhToan,id_ctkm ) 
+                                        VALUES ($id_user, $id_nv, 2, 3,$id_ctkm)";
                         if (!mysqli_query($link, $insertOrder)) {
                             throw new Exception("Không thể thêm hóa đơn.");
                         }

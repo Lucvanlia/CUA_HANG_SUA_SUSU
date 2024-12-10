@@ -25,6 +25,9 @@
     elseif ($tam == 'quanlykhuyenmai' && $tam1 == 'them') {
         include "modul/qlykm/lietke.php";
     }
+    elseif ($tam == 'quanlybaiviet' && $tam1 == 'them') {
+        include "modul/qlybaiviet/lietke.php";
+    }
     // kt trang chat lieu 
 
     //============Trang hang =================

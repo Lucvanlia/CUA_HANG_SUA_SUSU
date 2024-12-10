@@ -57,7 +57,7 @@ if (isset($_REQUEST['submit'])) {
         <form method="post">
             <div class="form-group">
                 <!-- Textarea sẽ chứa mô tả sản phẩm -->
-                <textarea id="content" name="content" class="form-control"><?php echo htmlspecialchars($product_description); ?></textarea>
+                <textarea id="content" name="content" class="form-control"></textarea>
             </div>
             <div class="form-group">
                 <input type="submit" name="submit" value="Update" class="btn btn-primary">

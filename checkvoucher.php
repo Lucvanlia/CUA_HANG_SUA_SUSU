@@ -14,12 +14,14 @@ $voucher_code = $_POST['voucher'];
 $query = "SELECT * FROM ChuongTrinhKM WHERE MaKM = '$voucher_code' AND CURDATE() BETWEEN NgayBatDau AND NgayKetThuc";
 $result = mysqli_query($link, $query);
 $voucher = mysqli_fetch_assoc($result);
-
+$name_voucher =  $voucher['TenCTKM'];
+$_SESSION['km'] =  $voucher['id_ctkm'];
 if ($voucher) {
     $discount = 0;
     $discount_message = '';
     $total_amount = 0;
     $product_discounts = [];
+    $product_discounts_name = [];
     $bill_discount_message = '';
 
     // Tính tổng giá trị hóa đơn từ giỏ hàng
@@ -39,16 +41,19 @@ if ($voucher) {
             $result_dv = mysqli_query($link, $query_dv);
             $row_dv = mysqli_fetch_assoc($result_dv);
             $product_name = htmlspecialchars($row_dv['Ten_sp']);
-            if (mb_strlen($product_name, 'UTF-8') > 26) {
-                $product_name = mb_substr($product_name, 0, 26, 'UTF-8') . '...';
-            }
+            // if (mb_strlen($product_name, 'UTF-8') > 26) {
+            //     $product_name = mb_substr($product_name, 0, 26, 'UTF-8') . '...';
+            // }
             if ($item['id_sp'] == $product['id_sp']) {
                 $product_discount = $item['GiaBan'] * ($product['GiamGia'] / 100);
                 $discount += $product_discount * $item['SoLuong'];
                 $item['discount'] = $product_discount * $item['SoLuong']; // Thêm giảm giá sản phẩm vào giỏ hàng
 
                 // Lưu thông tin giảm giá sản phẩm
-                $product_discounts[] = "- " . number_format($product_discount * $item['SoLuong'], 0, ',', '.') . " VNĐ cho sản phẩm " . $product_name;
+                // $product_discounts[] = "- " . number_format($product_discount * $item['SoLuong'], 0, ',', '.') . " VNĐ cho sản phẩm " . $product_name;
+                $product_discounts[] = "- " . number_format($product_discount * $item['SoLuong'], 0, ',', '.') . " VNĐ";
+                $product_discounts_name[] = $product_name;
+
             }
         }
     }
@@ -61,7 +66,11 @@ if ($voucher) {
     if ($discount_info && $total_amount >= $discount_info['DieuKienHoaDon']) {
         $bill_discount = $total_amount * ($discount_info['GiamGia'] / 100);
         $discount += $bill_discount;
-        $bill_discount_message = "- Điều kiện đặt " . number_format($discount_info['DieuKienHoaDon'], 0, ',', '.') . " VNĐ: giảm " . $discount_info['GiamGia'] . "% - " . number_format( $bill_discount, 0, ',', '.') . "VNĐ ";
+        // $bill_discount_message = "- Điều kiện đặt " . number_format($discount_info['DieuKienHoaDon'], 0, ',', '.') . " VNĐ: giảm " . $discount_info['GiamGia'] . "% - " . number_format( $bill_discount, 0, ',', '.') . "VNĐ ";
+        $bill_discount_message = "- Điều kiện khi mua hơn: " . number_format($discount_info['DieuKienHoaDon'], 0, ',', '.') . " VNĐ";
+        $bill_discount_dieukien = "Giảm " . $discount_info['GiamGia'] . "%";
+        $bill_discount_value = number_format( $bill_discount, 0, ',', '.') . "VNĐ ";
+
     }
 
     // Kiểm tra nếu không có giảm giá nào áp dụng
@@ -75,15 +84,20 @@ if ($voucher) {
 
     // Lưu thông tin giảm giá vào session
     $_SESSION['discount'] = $discount;
+    $_SESSION['MAKM'] = $voucher_code ;
     $_SESSION['discount_message'] = $discount_message;
-
+    $_SESSION['new_bill'] = $total_after_discount ;
     // Trả về kết quả
     echo json_encode([
         'status' => 'success',
         'message' => "Mã khuyến mãi đã được áp dụng!",
+        'namevoucher' => "$name_voucher",
         'total_before' => number_format($total_amount, 0, ',', '.') . " VNĐ",
         'product_discounts' => $product_discounts,
+        'product_discounts_name' => $product_discounts_name,
         'bill_discount_message' => $bill_discount_message,
+        'bill_discount_value' => $bill_discount_value,
+        'bill_discount_dieukien' => $bill_discount_dieukien,
         'discount' => number_format($discount, 0, ',', '.') . " VNĐ",
         'total_after' => number_format($total_after_discount, 0, ',', '.') . " VNĐ"
     ]);

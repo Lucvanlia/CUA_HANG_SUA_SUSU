@@ -178,7 +178,7 @@
 
                 <nav class="header__menu">
                     <ul>
-                        <li><a href="#">TRANG CHỦ</a></li>
+                        <li><a href="https://banhangviet-tmi.net/doan_php/">TRANG CHỦ</a></li>
                         <li><a href="?action=product&query=all">SẢN PHẨM</a></li>
 
                         <!-- Mega Menu cho Danh mục -->
