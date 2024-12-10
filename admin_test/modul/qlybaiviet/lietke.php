@@ -9,7 +9,7 @@
             <input type="text" id="search-input" class="form-control" placeholder="Tìm kiếm người dùng..." />
         </div>
         <div class="col-12 col-md-7 text-md-end">
-            <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#exampleModal">+ Thêm mới bài viết</button>
+         <a href="http://localhost/doan_php/admin_test/modul/qlybaiviet/them.php">  <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#exampleModal">+ Thêm mới bài viết</button></a> 
         </div>
     </div>
     <div id="user-list">

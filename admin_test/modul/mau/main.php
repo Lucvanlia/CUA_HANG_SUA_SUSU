@@ -28,6 +28,9 @@
     elseif ($tam == 'quanlybaiviet' && $tam1 == 'them') {
         include "modul/qlybaiviet/lietke.php";
     }
+    elseif ($tam == 'quanlybaiviet' && $tam1 == 'add') {
+        include "modul/qlybaiviet/them.php";
+    }
     // kt trang chat lieu 
 
     //============Trang hang =================

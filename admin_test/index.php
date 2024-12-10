@@ -27,17 +27,14 @@ ob_start(); // Bắt đầu bộ đệm
 <body>
     <div class="wrapper">
         <?php
-                if(isset($_SESSION['id_login']))
-                {
-                    include "ketnoi/conndb.php";
-                    include "modul/mau/slidebar.php";
-                    include "modul/mau/header.php";
-                    include "modul/mau/main.php";
-                }
-                else
-                {
-                    include_once"Login-Main.php";
-                }
+        if (isset($_SESSION['id_login'])) {
+            include "ketnoi/conndb.php";
+            include "modul/mau/slidebar.php";
+            include "modul/mau/header.php";
+            include "modul/mau/main.php";
+        } else {
+            include_once "Login-Main.php";
+        }
         ?>
     </div>
 
@@ -49,7 +46,9 @@ ob_start(); // Bắt đầu bộ đệm
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
     <!-- <script src="js/ketnoi.js"></script> -->
+
 </body>
+
 </html>
 <?php
 // Mã PHP của bạn ở đây
