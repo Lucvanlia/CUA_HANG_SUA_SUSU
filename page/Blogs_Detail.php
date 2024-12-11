@@ -1,8 +1,8 @@
 <?php
 
-$sql_tt = "SELECT * FROM tintuc  where id_ltt = " . $_GET['id'];
+$sql_tt = "SELECT * FROM tintuc  where id_tt = " . $_GET['id'];
 $result_tt = mysqli_query($link, $sql_tt);
-$sql_ttgy = "SELECT * FROM tintuc  where id_ltt != " . $_GET['id'] . ' LIMIT 3 ';
+$sql_ttgy = "SELECT * FROM tintuc  where id_tt != " . $_GET['id'] . ' LIMIT 3 ';
 // var_dump($sql_ttgy);exit();
 $result_ttgy = mysqli_query($link, $sql_ttgy);
 
@@ -34,14 +34,11 @@ $result_ttgy = mysqli_query($link, $sql_ttgy);
                 <div class="blog__sidebar">
                     <?php
                     // Kết nối đến cơ sở dữ liệu
-                    $conn = new mysqli('localhost', 'root', '', 'banhangviet');
-                    if ($conn->connect_error) {
-                        die("Kết nối thất bại: " . $conn->connect_error);
-                    }
+
 
                     // Lấy tất cả các loại tin tức
-                    $sql = "SELECT id_ltt, Ten_ltt, id_pr FROM loaitintuc";
-                    $result = $conn->query($sql);
+                    $sql = "SELECT id_ltt, Ten_ltt, parent_ltt FROM loaitintuc";
+                    $result = $link->query($sql);
 
                     $categories = [];
                     while ($row = $result->fetch_assoc()) {
@@ -53,7 +50,7 @@ $result_ttgy = mysqli_query($link, $sql_ttgy);
                     {
                         $branch = [];
                         foreach ($categories as $category) {
-                            if ($category['id_pr'] == $parent_id) {
+                            if ($category['parent_ltt'] == $parent_id) {
                                 $children = buildTree($categories, $category['id_ltt']);
                                 if ($children) {
                                     $category['children'] = $children;
@@ -97,36 +94,45 @@ $result_ttgy = mysqli_query($link, $sql_ttgy);
                     </div>
 
                     <div class="blog__sidebar__item">
-                        <h4>Tin tức gần đây </h4>
-                        <div class="blog__sidebar__recent">
-                            <a href="#" class="blog__sidebar__recent__item">
-                                <div class="blog__sidebar__recent__item__pic">
-                                    <img src="img/blog/sidebar/sr-1.jpg" alt="">
-                                </div>
-                                <div class="blog__sidebar__recent__item__text">
-                                    <h6>Dâu đầu mùa<br /> Giá rẻ bất ngờ</h6>
-                                    <span>24 tháng 5 năm 2024</span>
-                                </div>
-                            </a>
-                            <a href="#" class="blog__sidebar__recent__item">
-                                <div class="blog__sidebar__recent__item__pic">
-                                    <img src="img/blog/sidebar/sr-2.jpg" alt="">
-                                </div>
-                                <div class="blog__sidebar__recent__item__text">
-                                    <h6>Mẹo mua rau tươi ở <br /> Cửa hàng hoặc chợ</h6>
-                                    <span>24 tháng 5 năm 2024</span>
-                                </div>
-                            </a>
-                            <a href="#" class="blog__sidebar__recent__item">
-                                <div class="blog__sidebar__recent__item__pic">
-                                    <img src="img/blog/sidebar/sr-3.jpg" alt="">
-                                </div>
-                                <div class="blog__sidebar__recent__item__text">
-                                    <h6>Ăn trái cây mỗi ngày giúp<br />duy trì sức khỏe</h6>
-                                    <span>24 tháng 5 năm 2024</span>
-                                </div>
-                            </a>
-                        </div>
+                        <h4>Sản phẩm liên quan</h4>
+
+                        <?php
+                        $sql_tt1 = "SELECT * FROM tintuc  where id_tt = " . $_GET['id'];
+                        $result_tt1 = mysqli_query($link, $sql_tt);
+                        $kq_tt1 = mysqli_fetch_assoc($result_tt1);
+                        $tag_sp = $kq_tt1['tag_sp'];
+                        if (!empty($tag_sp)) {
+                            // Thêm trường Hinh_Nen vào câu truy vấn
+                            $productQuery = "SELECT id_sp, Ten_sp, Hinh_Nen FROM SanPham WHERE id_sp IN ($tag_sp)";
+                            $productResult = mysqli_query($link, $productQuery);
+
+                            // Kiểm tra kết quả trả về
+                            if ($productResult && mysqli_num_rows($productResult) > 0) {
+                                while ($product = mysqli_fetch_assoc($productResult)) {
+                        ?>
+                                    <div class="blog__sidebar__recent py-3" >
+                                        <a href="?action=product&query=details&id=<?= $product['id_sp'] ?>" class="blog__sidebar__recent__item">
+                                            <div class="blog__sidebar__recent__item__pic">
+                                                <img src="admin_test/uploads/sanpham/<?= $product['Hinh_Nen'] ?>" alt="" style="
+                                                    width: 100px;
+                                                    height: 100px;
+                                                ">
+                                            </div>
+                                            <div class="blog__sidebar__recent__item__text">
+                                                <span><?= $product['Ten_sp'] ?></span>
+                                            </div>
+                                        </a>
+                                    </div>
+                        <?php
+                                }
+                            } else {
+                                echo '<p>Không có sản phẩm liên quan.</p>';
+                            }
+                        } else {
+                            echo '<p>Không có sản phẩm liên quan.</p>';
+                        }
+                        ?>
+
                     </div>
                     <div class="blog__sidebar__item">
                         <h4>Top tìm kiếm</h4>
@@ -148,7 +154,6 @@ $result_ttgy = mysqli_query($link, $sql_ttgy);
 
                 ?>
                     <div class="blog__details__text">
-                        <img src="admin_test/modul/uploads/<?= $row_detail['HinhAnh'] ?>" alt="">
                         <p>
                         <h3><?= $row_detail['Title'] ?></h3>
 
@@ -210,7 +215,7 @@ $result_ttgy = mysqli_query($link, $sql_ttgy);
                 <div class="col-lg-4 col-md-4 col-sm-6">
                     <div class="blog__item">
                         <div class="blog__item__pic">
-                            <img src="admin_test/modul/uploads/<?= $row_gy['HinhAnh'] ?>" alt="">
+                            <img src="admin_test/uploads/<?= $row_gy['Hinh_Nen'] ?>" alt="">
                         </div>
                         <div class="blog__item__text">
                             <ul>
@@ -239,61 +244,61 @@ $result_ttgy = mysqli_query($link, $sql_ttgy);
 </section>
 
 <style>
-   .menu,
-.submenu {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-}
+    .menu,
+    .submenu {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
 
-.menu > li {
-    padding: 8px;
-    position: relative;
-}
+    .menu>li {
+        padding: 8px;
+        position: relative;
+    }
 
-.menu > li > a {
-    text-decoration: none;
-    color: #333;
-}
+    .menu>li>a {
+        text-decoration: none;
+        color: #333;
+    }
 
-.submenu {
-    max-height: 0; /* Ẩn các submenu mặc định */
-    overflow: hidden;
-    transition: max-height 0.3s ease; /* Thêm chuyển tiếp mượt mà */
-    padding-left: 15px;
-}
+    .submenu {
+        max-height: 0;
+        /* Ẩn các submenu mặc định */
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        /* Thêm chuyển tiếp mượt mà */
+        padding-left: 15px;
+    }
 
-.toggle-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #333;
-    font-weight: bold;
-    margin-left: 5px;
-}
-
+    .toggle-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #333;
+        font-weight: bold;
+        margin-left: 5px;
+    }
 </style>
 <!-- Related Blog Section End --><!-- Bao gồm Bootstrap CSS và JS -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 <script>
- document.addEventListener("DOMContentLoaded", function () {
-    const toggleButtons = document.querySelectorAll(".toggle-btn");
-    
-    toggleButtons.forEach(button => {
-        button.addEventListener("click", function () {
-            const submenu = this.nextElementSibling;
-            
-            // Kiểm tra trạng thái mở/đóng của submenu
-            if (submenu.style.maxHeight && submenu.style.maxHeight !== "0px") {
-                submenu.style.maxHeight = "0";
-                this.textContent = "+"; // Đổi nút thành dấu "+"
-            } else {
-                submenu.style.maxHeight = submenu.scrollHeight + "px"; // Mở rộng tới chiều cao tự nhiên
-                this.textContent = "-"; // Đổi nút thành dấu "-"
-            }
+    document.addEventListener("DOMContentLoaded", function() {
+        const toggleButtons = document.querySelectorAll(".toggle-btn");
+
+        toggleButtons.forEach(button => {
+            button.addEventListener("click", function() {
+                const submenu = this.nextElementSibling;
+
+                // Kiểm tra trạng thái mở/đóng của submenu
+                if (submenu.style.maxHeight && submenu.style.maxHeight !== "0px") {
+                    submenu.style.maxHeight = "0";
+                    this.textContent = "+"; // Đổi nút thành dấu "+"
+                } else {
+                    submenu.style.maxHeight = submenu.scrollHeight + "px"; // Mở rộng tới chiều cao tự nhiên
+                    this.textContent = "-"; // Đổi nút thành dấu "-"
+                }
+            });
         });
     });
-});
-
 </script>

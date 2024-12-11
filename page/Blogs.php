@@ -5,6 +5,7 @@ $sql_tintuc = mysqli_query($link, "SELECT * from tintuc limit 3
 ?>
 
 <section class="from-blog spad">
+<h2 class="text-center py-2">Bài Viết Chia Sẽ</h2>
     <div class="container">
         <div class="row">
             <div class="col-lg-12">
@@ -23,7 +24,7 @@ $sql_tintuc = mysqli_query($link, "SELECT * from tintuc limit 3
                 <div class="col-lg-4 col-md-4 col-sm-6">
                     <div class="blog__item">
                         <div class="blog__item__pic">
-                            <img src="admin_test/modul/uploads/<?= $row_tintuc['HinhAnh'] ?>" alt="">
+                            <img src="admin_test/uploads/<?= $row_tintuc['Hinh_Nen'] ?>" alt="" style="width: 100% !important; max-width: 100% !important;">
                         </div>
                         <div class="blog__item__text">
                             <ul>

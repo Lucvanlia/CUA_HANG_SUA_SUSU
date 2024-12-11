@@ -6,33 +6,54 @@
                     <div class="footer__about__logo">
                     </div>
                     <ul>
-                        <li>Address: 60-49 Road 11378 New York</li>
-                        <li>Phone: +65 11.188.888</li>
-                        <li>Email: hello@colorlib.com</li>
+                        <li>Địa chỉ: 15 Trần Văn Trà Phú Mỹ Hưng, Tp. Hồ Chí Minh </li>
+                        <li>Hotline: 0762323108</li>
+                        <li>Email: cuahangsusu@gmail.com</li>
                     </ul>
                 </div>
             </div>
             <div class="col-lg-4 col-md-6 col-sm-6 offset-lg-1">
-                <div class="footer__widget">
+                <h6>Nhà Cung Cấp Hàng Đầu và Danh Mục</h6>
 
-                    <h6>Useful Links</h6>
-                    <ul>
-                        <li><a href="#">About Us</a></li>
-                        <li><a href="#">About Our Shop</a></li>
-                        <li><a href="#">Secure Shopping</a></li>
-                        <li><a href="#">Delivery infomation</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Our Sitemap</a></li>
-                    </ul>
-                    <ul>
-                        <li><a href="#">Who We Are</a></li>
-                        <li><a href="#">Our Services</a></li>
-                        <li><a href="#">Projects</a></li>
-                        <li><a href="#">Contact</a></li>
-                        <li><a href="#">Innovation</a></li>
-                        <li><a href="#">Testimonials</a></li>
-                    </ul>
+                <div class="row">
+                    <?php
+                    // Truy vấn để lấy danh sách nhà cung cấp
+                    $nccQuery = "SELECT id_ncc, Ten_ncc, Hinh_ncc FROM NhaCungCap WHERE Hoatdong = 0";
+                    $nccResult = mysqli_query($link, $nccQuery);
+
+                    // Kiểm tra và hiển thị nhà cung cấp
+                    if ($nccResult && mysqli_num_rows($nccResult) > 0) {
+                        while ($ncc = mysqli_fetch_assoc($nccResult)) {
+                    ?>
+                            <div class="col-md-4">
+                                <div class="ncc-item">
+                                 <a href="?action=product&query=all&id_ncc=<?= $ncc['id_ncc'] ?>">   <img src="admin_test/uploads/nhacungcap/<?= $ncc['Hinh_ncc'] ?>" alt="<?= $ncc['Ten_ncc'] ?>" class="ncc-img"></a>
+                                </div>
+                            </div>
+                    <?php
+                        }
+                    }
+                    ?>
+
+                    <!-- Hiển thị danh mục -->
+                    <div class="col-md-8">
+                        <h6>Danh Mục</h6>
+                        <ul>
+                            <?php
+                            // Truy vấn để lấy danh sách danh mục
+                            $dmQuery = "SELECT id_dm, Ten_dm FROM DanhMuc WHERE Hoatdong = 0 and parent_dm != 0  LIMIT 5";
+                            $dmResult = mysqli_query($link, $dmQuery);
+
+                            if ($dmResult && mysqli_num_rows($dmResult) > 0) {
+                                while ($dm = mysqli_fetch_assoc($dmResult)) {
+                                    echo '<li><a href="?action=product&query=all&category_id=' . $dm['id_dm'] . '">' . $dm['Ten_dm'] . '</a></li>';
+                                }
+                            }
+                            ?>
+                        </ul>
+                    </div>
                 </div>
+
             </div>
             <div class="col-lg-4 col-md-12">
                 <div class="footer__widget">
@@ -40,10 +61,10 @@
 
                     <h6>Join Our Newsletter Now</h6>
 
-                    <p>Get E-mail updates about our latest shop and special offers.</p>
+                    <p>Đến với cửa hàng SuSu ngay.</p>
                     <form action="#">
-                        <input type="text" placeholder="Enter your mail">
-                        <button type="submit" class="site-btn">Subscribe</button>
+                        <input type="text" placeholder="Nhập Email">
+                        <button type="submit" class="site-btn">Gửi</button>
                     </form>
                     <div class="footer__widget__social">
                         <a href="#"><i class="fa fa-facebook"></i></a>
@@ -54,23 +75,9 @@
                 </div>
             </div>
         </div>
-        <p>hzxczvalsdakdalsdjkalljsdaksjdaksdjaksldjsalkdjaslkjdlellllo</p>
         <div id="google_translate_element"></div>
 
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="footer__copyright">
-                    <div class="footer__copyright__text">
-                        <p><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-                            Copyright ©<script>
-                                document.write(new Date().getFullYear());
-                            </script>2024 All rights reserved | This template is made with <i class="fa fa-heart" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
-                            <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --></p>
-                    </div>
-                    <div class="footer__copyright__payment"><img src="img/payment-item.png" alt=""></div>
-                </div>
-            </div>
-        </div>
+
     </div>
     <!-- Modal -->
     <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -218,7 +225,7 @@
     </script>
     <!-- <?php var_dump($_SESSION['cart']) ?> -->
     <script>
-         $(document).on("click", "#OffCheckVoucher", function() {
+        $(document).on("click", "#OffCheckVoucher", function() {
             // Ẩn giỏ hàng
             $("#cart-table").show();
 
@@ -361,9 +368,9 @@
                                 // Nếu giỏ hàng trống, hiển thị thông báo
                                 if (response.cartEmpty) {
                                     $(".checkout__order__products").html("<p>Giỏ hàng của bạn hiện đang trống.</p>");
-                                    <?php 
-                                        unset($_SESSION['discount']);
-                                        unset($_SESSION['MAKM']);
+                                    <?php
+                                    unset($_SESSION['discount']);
+                                    unset($_SESSION['MAKM']);
                                     ?>
                                 }
                             } else {

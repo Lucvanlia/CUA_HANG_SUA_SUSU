@@ -167,7 +167,7 @@ function hienThibinhluan($binhluanList, $page, $total, $limit)
 
         $html .= "<tr>
                     <td>{$index}</td>
-                    <td>{$kh['Title']}</td>
+                    <td> <a href='http://localhost/doan_php/admin_test/modul/qlybaiviet/chitiet.php?id={$kh['id_tt']}'> {$kh['Title']}</a></td>
                     <td>{$tenSanPhamHTML}</td>
                     <td>{$kh['created_at']}</td>
                     <td>
