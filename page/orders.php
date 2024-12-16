@@ -2,10 +2,10 @@
 if (isset($_SESSION['id_user'])) {
     $id_user = mysqli_real_escape_string($link, $_SESSION['id_user']);
     $sql_hd = "SELECT *, FROM_UNIXTIME(created_at, '%Y-%m') as ThangNam 
-           FROM hdb
+           FROM hdb 
            WHERE id_kh = " . $_SESSION['id_user'] . "
            ORDER BY created_at DESC";
-           $sql_ct = "
+    $sql_ct = "
            SELECT 
                sp.Ten_sp AS Ten_sp, 
                ct.SoLuong AS SoLuong, 
@@ -67,6 +67,7 @@ if (isset($_SESSION['id_user'])) {
         while ($row_hd = mysqli_fetch_array($result_hd)) {
             $month_year = $row_hd['ThangNam']; // Lấy giá trị tháng và năm từ câu truy vấn
             $orders_by_month[$month_year][] = $row_hd; // Nhóm các hóa đơn theo tháng
+            $km = $row_hd['id_ctkm'];
         }
         ?>
 
@@ -112,64 +113,141 @@ if (isset($_SESSION['id_user'])) {
                                 </button>
                             </h2>
                             <div id="order<?= $row_hd['id_hdb'] ?>" class="accordion-collapse collapse" aria-labelledby="heading<?= $row_hd['id_hdb'] ?>" data-bs-parent="#orderHistory">
-                                <div class="accordion-body">
-                                    <p><strong>Ngày đặt hàng:</strong> <?= $row_hd['created_at'] ?></p>
-                                    <p><strong>Tổng tiền:</strong> <?= number_format($tongtien, 0, ',', '.') ?> VND</p>
-                                    <p><strong>Trạng thái:</strong>
-                                        <?php if ($row_hd['ThanhToan'] == 1) echo '<span class="p-1 mb-1 bg-success text-center text-white rounded-pill">Đã thanh toán COD';
-                                        else if ($row_hd['ThanhToan'] == 2) echo '<span class="p-1 mb-1 bg-primary text-center text-white rounded-pill">Đã thanh toán chuyển khoản';
-                                        else  echo '<span class="p-1 mb-1 bg-danger text-center text-white rounded-pill">Chưa thanh toán' ?>
-                                        </span>
-                                    </p>
-                                    <p><strong>Sản phẩm trong hóa đơn:</strong></p>
-                                    <table class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th scope="col">STT</th>
-                                                <th scope="col">Tên sản phẩm</th>
-                                                <th scope="col">Số lượng</th>
-                                                <th scope="col">Kích thước</th>
-                                                <th scope="col">Đơn Giá</th>
-                                                <th scope="col">Thành tiền</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php
-                                            $stt = 1;
-                                            
-                                            // Lặp qua các chi tiết sản phẩm của đơn hàng hiện tại
-                                            mysqli_data_seek($result_ct, 0); // Đặt con trỏ về đầu
-                                            while ($row_ct = mysqli_fetch_array($result_ct)) {
-                                                $thanhtien = $row_ct['DonGia']*$row_ct['SoLuong'];
-                                                if ($row_ct['id_hdb'] == $row_hd['id_hdb']) {
-                                                    // var_dump($row_ct);
-                                                    echo "                                        <tr>
-                                                    <th scope='row'>" . $stt . "</th>
-                                                      <td> " . $row_ct['Ten_sp'] . " </td>
-                                               <td> " . $row_ct['SoLuong'] . "  </td>
-                                                <td>" . $row_ct['Ten_dv'] . "</td>
-                                              <td>  " . number_format($row_ct['DonGia'], 0, ',', '.') . "</td> 
-                                            <td>  " . number_format($thanhtien, 0, ',', '.') . "</td> 
+                                <?php
+                                if ($km <= 0) {
+                                    // Thực hiện hành động nếu $km bằng 0 không có khuyến mãi 
+                                ?>
+                                    <div class="accordion-body">
 
-                                              </tr>";
-                                                       $stt++;
-                                                $tongtien += $thanhtien;
+
+                                        <p><strong>Ngày đặt hàng:</strong> <?= $row_hd['created_at'] ?></p>
+                                        <p><strong>Tổng tiền:</strong> <?= number_format($tongtien, 0, ',', '.') ?> VND</p>
+                                        <p><strong>Trạng thái:</strong>
+                                            <?php if ($row_hd['ThanhToan'] == 1) echo '<span class="p-1 mb-1 bg-success text-center text-white rounded-pill">Đã thanh toán COD';
+                                            else if ($row_hd['ThanhToan'] == 2) echo '<span class="p-1 mb-1 bg-primary text-center text-white rounded-pill">Đã thanh toán chuyển khoản';
+                                            else  echo '<span class="p-1 mb-1 bg-danger text-center text-white rounded-pill">Chưa thanh toán' ?>
+                                            </span>
+                                        </p>
+                                        <p><strong>Sản phẩm trong hóa đơn:</strong></p>
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">STT</th>
+                                                    <th scope="col">Tên sản phẩm</th>
+                                                    <th scope="col">Số lượng</th>
+                                                    <th scope="col">Kích thước</th>
+                                                    <th scope="col">Đơn Giá</th>
+                                                    <th scope="col">Thành tiền</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php
+                                                $stt = 1;
+
+                                                // Lặp qua các chi tiết sản phẩm của đơn hàng hiện tại
+                                                mysqli_data_seek($result_ct, 0); // Đặt con trỏ về đầu
+                                                while ($row_ct = mysqli_fetch_array($result_ct)) {
+                                                    $thanhtien = $row_ct['DonGia'] * $row_ct['SoLuong'];
+                                                    if ($row_ct['id_hdb'] == $row_hd['id_hdb']) {
+                                                        // var_dump($row_ct);
+                                                        echo "                                        <tr>
+                                                 <th scope='row'>" . $stt . "</th>
+                                                   <td> " . $row_ct['Ten_sp'] . " </td>
+                                            <td> " . $row_ct['SoLuong'] . "  </td>
+                                             <td>" . $row_ct['Ten_dv'] . "</td>
+                                           <td>  " . number_format($row_ct['DonGia'], 0, ',', '.') . "</td> 
+                                         <td>  " . number_format($thanhtien, 0, ',', '.') . "</td> 
+
+                                           </tr>";
+                                                        $stt++;
+                                                        $tongtien += $thanhtien;
+                                                    }
                                                 }
-                                       
-                                            }
-                                            ?>
+                                                ?>
 
 
 
 
-                                        </tbody>
-                                    </table>
-                                    <ul>
+                                            </tbody>
+                                        </table>
+                                        <ul>
 
-                                    </ul>
-                                    <button class="btn btn-danger btn-cancel-order">Yêu cầu hủy đơn hàng</button>
-                                </div>
+                                        </ul>
+                                        <button class="btn btn-danger btn-cancel-order">Yêu cầu hủy đơn hàng</button>
+                                    </div>
+
                             </div>
+                        <?php
+                                } else {
+                        ?>
+                          <div class="accordion-body">
+                                 
+
+                                 <p><strong>Ngày đặt hàng:</strong> <?= $row_hd['created_at'] ?></p>
+                                 <p><strong>Trạng thái:</strong>
+                                     <?php if ($row_hd['ThanhToan'] == 1) echo '<span class="p-1 mb-1 bg-success text-center text-white rounded-pill">Đã thanh toán COD';
+                                     else if ($row_hd['ThanhToan'] == 2) echo '<span class="p-1 mb-1 bg-primary text-center text-white rounded-pill">Đã thanh toán chuyển khoản';
+                                     else  echo '<span class="p-1 mb-1 bg-danger text-center text-white rounded-pill">Chưa thanh toán' ?>
+                                     </span>
+                                 </p>
+                                 <p><strong>Sản phẩm trong hóa đơn:</strong></p>
+                                 <table class="table table-hover">
+                                     <thead>
+                                         <tr>
+                                             <th scope="col">STT</th>
+                                             <th scope="col">Tên sản phẩm</th>
+                                             <th scope="col">Số lượng</th>
+                                             <th scope="col">Kích thước</th>
+                                             <th scope="col">Đơn Giá</th>
+                                             <th scope="col">Khuyến mãi</th>
+                                             <th scope="col">Thành tiền</th>
+                                         </tr>
+                                     </thead>
+                                     <tbody>
+                                         <?php
+                                         $stt = 1;
+
+                                         // Lặp qua các chi tiết sản phẩm của đơn hàng hiện tại
+                                         mysqli_data_seek($result_ct, 0); // Đặt con trỏ về đầu
+                                         while ($row_ct = mysqli_fetch_array($result_ct)) {
+                                             $thanhtien = $row_ct['DonGia'] * $row_ct['SoLuong'];
+                                             if ($row_ct['id_hdb'] == $row_hd['id_hdb']) {
+                                                 // var_dump($row_ct);
+                                                 echo "                                        <tr>
+                                                 <th scope='row'>" . $stt . "</th>
+                                                   <td> " . $row_ct['Ten_sp'] . " </td>
+                                            <td> " . $row_ct['SoLuong'] . "  </td>
+                                             <td>" . $row_ct['Ten_dv'] . "</td>
+                                           <td>  " . number_format($row_ct['DonGia'], 0, ',', '.') . "</td> 
+                                         <td>  " . number_format($thanhtien, 0, ',', '.') . "</td> 
+
+                                           </tr>";
+                                                 $stt++;
+                                                 $tongtien += $thanhtien;
+                                             }
+                                         }
+                                         ?>
+
+
+
+
+                                     </tbody>
+                                 </table>
+                                 <ul>
+
+                                 </ul>
+                                 <p><strong>Tổng tiền khi mua:</strong> <?= number_format($tongtien, 0, ',', '.') ?> VND</p>
+                                 <p><strong>Tổng tiền khuyến mãi:</strong> <?= number_format($tongtien, 0, ',', '.') ?> VND</p>
+                                 <p><strong>Tổng tiền sau khuyến mãi:</strong> <?= number_format($tongtien, 0, ',', '.') ?> VND</p>
+
+                                 <button class="btn btn-danger btn-cancel-order">Yêu cầu hủy đơn hàng</button>
+                             </div>
+
+                         </div>
+                        <?php
+                                }
+                        ?>
+
                         </div>
                     <?php } // End of orders loop 
                     ?>
